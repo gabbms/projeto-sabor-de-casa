@@ -1,54 +1,46 @@
-# Sabor de Casa – Comida Caseira com Amor 🍲
+# 🍲 Sabor de Casa – Comida Caseira com Amor
 
-Bem-vindo ao repositório do **Sabor de Casa**, uma página web moderna e responsiva para um restaurante de comida caseira maranhense. Este projeto foi desenvolvido para oferecer uma experiência de usuário fluida, permitindo visualizar o cardápio, conhecer a história do restaurante e realizar pedidos de forma simples.
+Uma plataforma web moderna e responsiva desenvolvida para o restaurante **Sabor de Casa**, especializado em culinária típica piauiense. O projeto combina uma interface elegante com funcionalidades avançadas de front-end e integração com serviços de back-end.
 
-## 🚀 Funcionalidades
+## 📋 Sobre o Projeto
 
-- **Navegação SPA:** Alternância entre seções (Início, Cardápio, Nossa História, Gestão) sem recarregar a página.
-- **Cardápio Dinâmico:** Listagem de pratos com filtros por categoria (Pratos Principais, Porções, Vegetarianos, Sobremesas).
-- **Sistema de Pedidos:** Modal interativo para personalização de pedidos e coleta de informações de entrega.
-- **Integração com ViaCEP:** Busca automática de endereço a partir do CEP informado.
-- **Painel de Gestão:** Interface administrativa para controlar a disponibilidade dos pratos em tempo real.
-- **Design Responsivo:** Adaptado para dispositivos móveis e desktops.
-- **Feedback Visual:** Uso de Toasts para notificações de sucesso ou erro.
+Este projeto foi construído com o objetivo de unir a tradição da comida caseira com a modernidade das tecnologias web. Ele serve como uma demonstração técnica de habilidades em manipulação de DOM, consumo de APIs externas e persistência de dados em tempo real.
+
+## ✨ Funcionalidades
+
+- **Cardápio Dinâmico:** Listagem de pratos gerada via JavaScript a partir de uma base de dados interna, facilitando a manutenção.
+- **Filtros Inteligentes:** Categorização por Pratos Principais, Porções, Vegetarianos e Sobremesas.
+- **Sistema de Pedidos:** Modal interativo para realização de pedidos com personalizações e escolha de forma de pagamento.
+- **Validação de Formulários:** Verificação em tempo real de nomes (bloqueio de números) e telefones (bloqueio de letras) para garantir dados limpos.
+- **Integração ViaCEP API:** Busca automática de endereço (Rua, Bairro, Cidade) ao informar o CEP, utilizando `Fetch API` e `async/await`.
+- **Back-end com Firebase:** Armazenamento persistente de todos os pedidos realizados diretamente no **Google Firebase Firestore**.
+- **Painel de Gestão (Admin):** Interface para o gerente controlar a disponibilidade de cada prato em tempo real.
+- **Responsividade Total:** Layout adaptável para dispositivos móveis, tablets e desktops utilizando CSS Grid e Flexbox.
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **HTML5:** Estrutura semântica da página.
-- **CSS3:** Estilização moderna com variáveis, Flexbox e Grid.
-- **JavaScript (Vanilla):** Lógica de negócio, manipulação do DOM e integração com API.
-- **Google Fonts:** Fontes *Playfair Display* e *Lato* para uma tipografia elegante.
-- **ViaCEP API:** Para consulta de endereços.
+- **HTML5:** Estrutura semântica para melhor acessibilidade e SEO.
+- **CSS3:** Estilização avançada com variáveis nativas, Flexbox e CSS Grid.
+- **JavaScript (ES6+):** Lógica de interatividade, manipulação do DOM e funções assíncronas.
+- **Firebase Firestore:** Banco de dados NoSQL para persistência de pedidos.
+- **ViaCEP API:** API pública para consulta de endereços brasileiros.
 
-## 📂 Estrutura do Projeto
+## 🚀 Como Executar o Projeto
+
+1.  **Clonagem/Download:** Baixe os arquivos do projeto para sua máquina local.
+2.  **Configuração do Firebase:**
+    -   Crie um projeto no [Console do Firebase](https://console.firebase.google.com/).
+    -   Ative o **Firestore Database** em "Modo de Teste".
+    -   Crie uma Web App e copie as chaves de configuração.
+    -   Substitua o objeto `firebaseConfig` no topo do arquivo `script.js` pelas suas chaves.
+3.  **Execução:** Abra o arquivo `index.html` em qualquer navegador moderno.
+
+## 📁 Estrutura de Arquivos
 
 ```text
-.
-├── index.html    # Estrutura principal da página
-├── style.css     # Estilos e design responsivo
-├── script.js     # Lógica da aplicação e dados do cardápio
-└── README.md     # Documentação do projeto
-```
-
-## 💻 Como Executar
-
-1. Clone este repositório:
-   ```bash
-   git clone https://github.com/gabbms/pagina-restaurante.git
-   ```
-2. Navegue até a pasta do projeto:
-   ```bash
-   cd pagina-restaurante
-   ```
-3. Abra o arquivo `index.html` em seu navegador preferido.
-
-## 📝 Melhorias Realizadas
-
-Recentemente, o projeto passou por uma refatoração completa para:
-- Corrigir duplicação de código no HTML.
-- Padronizar cores e estilos usando variáveis CSS.
-- Aprimorar a validação de formulários e feedback ao usuário.
-- Organizar a estrutura de arquivos e documentação.
-
----
-Desenvolvido com ❤️ por [Gabbms](https://github.com/gabbms)
+/SaborDeCasa
+│
+├── index.html     # Estrutura principal e seções do site
+├── style.css      # Estilização, layout responsivo e animações
+├── script.js     # Lógica do cardápio, validações, API e Firebase
+└── /img           # Pasta contendo as imagens dos pratos e equipe
