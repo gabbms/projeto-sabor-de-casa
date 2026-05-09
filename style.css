@@ -380,7 +380,7 @@
 
 .avatar-vinicius {
   background: var(--verde);
-  background-image: url('/img/perfil-vini.jpeg'); /* Sua foto local */
+  background-image: url('./img/perfil-vini.jpeg'); /* Sua foto local */
   background-size: cover;
   background-position: center top;
 }
@@ -388,14 +388,14 @@
 .avatar-eduardo {
   background: var(--laranja);
   /* Placeholder atualizado com a letra 'E' */
-  background-image: url('/img/perfil-eduardo.jpeg');
+  background-image: url('./img/perfil-eduardo.jpeg');
   background-size: cover; 
   background-position: center center;
 }
 
 .avatar-gabriel {
   background: var(--marrom);
-  background-image: url('/img/perfil-gab.jpg'); /* Sua foto local */
+  background-image: url('./img/perfil-gab.jpg'); /* Sua foto local */
   background-size: cover; 
   background-position: center top;
 }
@@ -404,7 +404,7 @@
   background: var(--ouro);
   color: var(--marrom);
   /* Placeholder atualizado com a letra 'C' */
-  background-image: url('/img/perfil-clidenor.jpeg');
+  background-image: url('./img/perfil-clidenor.jpeg');
   background-size: cover; 
   background-position: center 30%;
 }

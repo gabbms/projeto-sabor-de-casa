@@ -14,7 +14,7 @@ const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
     emoji:"🫘", preco:45.00,
-    imagem:"/img/frimesa-receitas-eisbein-1.jpg",
+    imagem:"./img/frimesa-receitas-eisbein-1.jpg",
     desc:"Feijoada negra com carnes nobres, servida com arroz branco soltinho, farofa crocante, couve refogada e rodelas de laranja.",
     tags:["serve até 3 pessoas","contém glúten"],
     personalizacoes:["Substituir farofa por pirão","Sem pimenta","Couve extra (+R$3)","Laranja extra (+R$2)"],
@@ -23,7 +23,7 @@ const PRATOS = [
   {
     id:2, nome:"Escondidinho de Carne Seca", cat:"prato-principal",
     emoji:"🥘", preco:38.00,
-    imagem:"/img/escondidinho.jpeg",
+    imagem:"./img/escondidinho.jpeg",
     desc:"Camadas generosas de mandioca cremosa com carne seca desfiada, gratinadas com queijo coalho e finalizada com manteiga de garrafa.",
     tags:["individual","sem glúten"],
     personalizacoes:["Frango no lugar de carne seca","Mandioca extra (+R$4)","Queijo extra (+R$5)","Sem pimenta"],
@@ -32,7 +32,7 @@ const PRATOS = [
   {
     id:3, nome:"Arroz de Cuxá", cat:"prato-principal",
     emoji:"🍚", preco:32.00,
-    imagem:"/img/cuxa.jpeg",
+    imagem:"./img/cuxa.jpeg",
     desc:"Prato típico maranhense: arroz preparado com vinagreira fresca, gergelim torrado e camarão seco. Sabor único e inconfundível.",
     tags:["individual","contém frutos do mar"],
     personalizacoes:["Sem camarão (versão vegana)","Porção maior (+R$8)"],
@@ -41,7 +41,7 @@ const PRATOS = [
   {
     id:4, nome:"Moqueca de Peixe", cat:"prato-principal",
     emoji:"🐟", preco:52.00,
-    imagem:"/img/moqueca.jpeg",
+    imagem:"./img/moqueca.jpeg",
     desc:"Peixe fresco da pesca local cozido em leite de coco, azeite de dendê, tomate, cebola e coentro. Acompanha pirão e arroz.",
     tags:["serve até 2 pessoas","sem glúten","contém peixe"],
     personalizacoes:["Camarão no lugar do peixe (+R$15)","Versão sem dendê","Arroz extra (+R$5)"],
@@ -50,7 +50,7 @@ const PRATOS = [
   {
     id:5, nome:"Baião de Dois", cat:"prato-principal",
     emoji:"🫙", preco:28.00,
-    imagem:"/img/baiao.jpeg",
+    imagem:"./img/baiao.jpeg",
     desc:"Receita tradicional do nordeste com arroz e feijão-verde cozidos juntos, temperados com queijo coalho, bacon e ervas frescas.",
     tags:["individual","contém glúten"],
     personalizacoes:["Versão vegetariana (sem bacon)","Arroz integral","Queijo extra (+R$4)"],
@@ -59,7 +59,7 @@ const PRATOS = [
   {
     id:6, nome:"Bolinho de Bacalhau", cat:"porcao",
     emoji:"🥙", preco:25.00,
-    imagem:"/img/bolinho-bacalhau.jpeg",
+    imagem:"./img/bolinho-bacalhau.jpeg",
     desc:"6 unidades de bolinho crocante por fora e cremoso por dentro, preparado com bacalhau importado dessalgado, batata e ervas.",
     tags:["6 unidades","contém peixe"],
     personalizacoes:["8 unidades (+R$7)","Molho aioli extra (+R$4)"],
@@ -77,7 +77,7 @@ const PRATOS = [
   {
     id:8, nome:"Prato Vegetariano do Dia", cat:"vegetariano",
     emoji:"🌽", preco:30.00,
-    imagem:"/img/vegetariano.jpeg",
+    imagem:"./img/vegetariano.jpeg",
     desc:"Preparação especial que muda diariamente, sempre com legumes e verduras frescos da feira, grãos e um toque criativo do chef.",
     tags:["vegetariano","perguntar ao garçom"],
     personalizacoes:["Versão vegana","Porção extra (+R$10)"],
@@ -86,7 +86,7 @@ const PRATOS = [
   {
     id:9, nome:"Pudim de Leite", cat:"sobremesa",
     emoji:"🍮", preco:14.00,
-    imagem:"/img/pudim.jpeg",
+    imagem:"./img/pudim.jpeg",
     desc:"Pudim artesanal com receita secreta da sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
     tags:["individual","contém leite"],
     personalizacoes:["Porção dupla (+R$10)","Calda de chocolate (+R$3)"],
@@ -95,7 +95,7 @@ const PRATOS = [
   {
     id:10, nome:"Canjica com Coco", cat:"sobremesa",
     emoji:"🥛", preco:12.00,
-    imagem:"/img/canjica.jpeg",
+    imagem:"./img/canjica.jpeg",
     desc:"Canjica de milho branco cremosa, cozida no leite de coco e canela. Servida quente ou fria, como preferir.",
     tags:["sem glúten","vegetariano"],
     personalizacoes:["Calda de caramelo (+R$3)","Amendoim extra (+R$2)"],
