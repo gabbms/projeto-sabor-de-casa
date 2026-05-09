@@ -338,12 +338,12 @@
 
   
   .sobre-img--historia {
-    background-image: url('/img/cozinha-unsplash.jpg');
+    background-image: url('./img/cozinha-unsplash.jpg');
   }
 
   
   .sobre-img--filosofia {
-    background-image: url('/img/foto-filosofia.jpg');
+    background-image: url('./img/foto-filosofia.jpg');
   }
   .sobre-text h2 {
     font-family: 'Playfair Display', serif;
