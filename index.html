@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sabor de Casa – Comida Caseira com Amor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!--NAVEGAÇÃO-->
+<nav>
+  <div class="nav-logo">Sabor <span>de Casa</span></div>
+  <div class="nav-links">
+    <a href="#" class="active" onclick="mostrarSecao('home',this)">Início</a>
+    <a href="#" onclick="mostrarSecao('cardapio',this)">Cardápio</a>
+    <a href="#" onclick="mostrarSecao('sobre',this)">Nossa História</a>
+    <a href="#" class="admin-btn" onclick="mostrarSecao('admin',this)">⚙ Gestão</a>
+  </div>
+</nav>
+
+<!--HOME-->
+<section id="home" class="section active">
+  <div class="hero">
+    <div class="hero-badge">✦ Ingredientes Frescos da Região ✦</div>
+    <h1>Comida feita com <em>amor</em><br>e cuidado de sempre</h1>
+    <p>Do fogão da família direto à sua mesa. Cada prato carrega a tradição e o carinho da cozinha caseira maranhense.</p>
+  
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>12+</strong><span>Pratos Artesanais</span></div>
+      <div class="hero-stat"><strong>5 anos</strong><span>Servindo com Amor</span></div>
+      <div class="hero-stat"><strong>100%</strong><span>Ingredientes Locais</span></div>
+    </div>
+  </div>
+
+  <div class="container section-padding">
+    
+    <h2 class="section-title">Destaques do Dia</h2>
+    <p class="section-sub">Pratos preparados com os melhores ingredientes frescos de hoje</p>
+    <div class="pratos-grid" id="destaques-grid"></div>
+  </div>
+</section>
+
+<!--CARDÁPIO-->
+<section id="cardapio" class="section">
+  <div class="cardapio-wrap">
+   
+    <h2 class="section-title">Nosso Cardápio</h2>
+    <p class="section-sub">Pratos preparados com carinho, ingredientes frescos e muito sabor</p>
+
+    <div class="filtros">
+      <button class="filtro-btn active" onclick="filtrarPratos('todos',this)">Todos</button>
+      <button class="filtro-btn" onclick="filtrarPratos('prato-principal',this)">Pratos Principais</button>
+      <button class="filtro-btn" onclick="filtrarPratos('porcao',this)">Porções</button>
+      <button class="filtro-btn" onclick="filtrarPratos('vegetariano',this)">Vegetarianos</button>
+      <button class="filtro-btn" onclick="filtrarPratos('sobremesa',this)">Sobremesas</button>
+    </div>
+
+    <div class="pratos-grid" id="cardapio-grid"></div>
+  </div>
+</section>
+
+<!-- ═══ SOBRE ═══ -->
+<section id="sobre" class="section">
+  <div class="sobre-hero">
+    <h1>Nossa História</h1>
+    <p>Nascemos do sonho de levar para a sua mesa a autenticidade e o calor da cozinha de casa, com ingredientes frescos cultivados perto daqui.</p>
+  </div>
+
+  <div class="sobre-content">
+    <div class="sobre-block">
+      <div class="sobre-img sobre-img--historia"></div>
+      <div class="sobre-text">
+        <h2>Como tudo começou</h2>
+        <p>O Sabor de Casa nasceu em 2019, quando o chef Marcos Oliveira decidiu transformar sua paixão pela cozinha da avó em um restaurante de verdade. Crescendo em São Luís, Marcos aprendeu desde cedo que a melhor comida vem de ingredientes simples, preparados com atenção e carinho.</p>
+       
+        <p>Hoje, o Sabor de Casa é referência em comida caseira maranhense, mantendo viva a tradição dos pratos regionais com o frescor dos ingredientes locais.</p>
+      </div>
+    </div>
+
+    <div class="sobre-block reverse">
+      <div class="sobre-img sobre-img--filosofia"></div>
+      <div class="sobre-text">
+        <h2>Nossa Filosofia</h2>
+        <p>Acreditamos que a comida boa começa antes do fogão. Trabalhamos com fornecedores locais, mercados da região e feiras de agricultores para garantir que cada ingrediente chegue até você no seu ponto ideal.</p>
+        <p>Sem conservantes, sem ingredientes artificiais. Apenas o produto da terra, o tempo certo de preparo e o tempero que só a experiência ensina.</p>
+       
+      </div>
+    </div>
+  </div>
+
+  <div class="equipe-section">
+    
+    <h2 class="section-title">Nossa Equipe</h2>
+    <p class="section-sub">As pessoas que fazem a magia acontecer todos os dias</p>
+    <div class="equipe-grid">
+      <div class="equipe-card">
+        <div class="equipe-avatar avatar-marcos"></div>
+        <div class="equipe-nome">Vinicius Gomes</div>
+        <div class="equipe-cargo">Chef & Fundador</div>
+        <p class="equipe-desc">15 anos de experiência em cozinha regional maranhense. Especialista em feijoadas e pratos de carne.</p>
+      </div>
+      <div class="equipe-card">
+        <div class="equipe-avatar avatar-ana"></div>
+        <div class="equipe-nome">Eduardo Castelo</div>
+        <div class="equipe-cargo">Sous Chef</div>
+        <p class="equipe-desc">Especialista em sobremesas e massas caseiras. Responsável pelo famoso pudim da casa.</p>
+      </div>
+      <div class="equipe-card">
+        <div class="equipe-avatar avatar-carlos"></div>
+        <div class="equipe-nome">Gabriel Marques</div>
+        <div class="equipe-cargo">Cozinheiro</div>
+        <p class="equipe-desc">Mestre das porções e aperitivos. Seu escondidinho é o mais pedido da casa há 3 anos.</p>
+      </div>
+      <div class="equipe-card">
+        <div class="equipe-avatar avatar-letizia"></div>
+        <div class="equipe-nome">Clidenor</div>
+        <div class="equipe-cargo">Atendimento</div>
+        <p class="equipe-desc">O sorriso que recebe você na porta. Conhece cada prato de cor e sempre tem uma boa recomendação.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!--ADMIN -->
+<section id="admin" class="section">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <div>
+        <h2>Painel de Gestão</h2>
+        <p>Controle a disponibilidade dos pratos em tempo real</p>
+      </div>
+      <div class="admin-icon">🍽️</div>
+    </div>
+    <div id="admin-lista"></div>
+  </div>
+</section>
+
+<!--MODAL PEDIDO-->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <h2 id="modal-titulo">Fazer Pedido</h2>
+    <p class="modal-prato-info" id="modal-info"></p>
+
+    <div class="personaliz-wrap" id="personaliz-wrap">
+      <h4>🔧 Personalizações</h4>
+      <div id="personaliz-opts"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Seu Nome *</label>
+      <input type="text" id="campo-nome" placeholder="Como podemos te chamar?" oninput="validarNome(this)">
+      <div id="erro-nome" class="erro-msg">
+        ⚠️ O nome não pode conter números.
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Telefone *</label>
+      <input type="tel" id="campo-tel" placeholder="(98) 9XXXX-XXXX" oninput="validarTelefone(this)">
+      <div id="erro-tel" class="erro-msg">
+        ⚠️ O telefone deve conter apenas números.
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tipo de Entrega *</label>
+      <select id="campo-entrega" onchange="toggleDelivery(this.value)">
+        <option value="">Selecione...</option>
+        <option value="retirada">🏠 Retirada no Local</option>
+        <option value="delivery">🛵 Delivery</option>
+      </select>
+    </div>
+
+    <div class="endereco-wrap" id="endereco-wrap">
+      <div class="form-group">
+        <label>CEP *</label>
+        <div class="cep-row">
+          <input type="text" id="campo-cep" placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)">
+          <button class="cep-btn" onclick="buscarCEP()">Buscar CEP</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group no-margin">
+          <label>Rua</label>
+          <input type="text" id="campo-rua" placeholder="Carregando...">
+        </div>
+        <div class="form-group no-margin">
+          <label>Número</label>
+          <input type="text" id="campo-num" placeholder="Ex: 123">
+        </div>
+      </div>
+      <div class="form-row margin-top-sm">
+        <div class="form-group no-margin">
+          <label>Bairro</label>
+          <input type="text" id="campo-bairro" placeholder="Carregando...">
+        </div>
+        <div class="form-group no-margin">
+          <label>Cidade / UF</label>
+          <input type="text" id="campo-cidade" placeholder="Carregando...">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group margin-top-md">
+      <label>Pagamento *</label>
+      <select id="campo-pagamento">
+        <option value="">Selecione...</option>
+        <option value="dinheiro">💵 Dinheiro</option>
+        <option value="pix">📱 PIX</option>
+        <option value="credito">💳 Cartão de Crédito</option>
+        <option value="debito">💳 Cartão de Débito</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Observações</label>
+      <textarea id="campo-obs" rows="2" placeholder="Alguma preferência especial, restrição alimentar ou mensagem?" class="textarea-obs"></textarea>
+    </div>
+
+    <button class="btn-confirmar" onclick="confirmarPedido()">✓ Confirmar Pedido</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<footer>
+  <div>
+    <h4>Sabor de Casa</h4>
+    <p>Comida caseira com ingredientes frescos da região, preparada com amor e tradição piauiense.</p>
+  </div>
+  <div>
+    <h4>Horários</h4>
+    <p>Segunda a Sexta: 11h – 22h<br>Sábado: 11h – 23h<br>Domingo: 11h – 21h</p>
+  </div>
+  <div>
+    <h4>Contato</h4>
+    <p>(86) 9 9999-9999<br>contato@sabordecasa.com.br<br>Rua das Flores, 123<br>Teresina - PI</p>
+  </div>
+  <div>
+    <h4>Links</h4>
+    <a href="#" onclick="mostrarSecao('cardapio',null)">Cardápio</a>
+    <a href="#" onclick="mostrarSecao('sobre',null)">Nossa História</a>
+    <a href="#">Instagram</a>
+    <a href="#">WhatsApp</a>
+  </div>
+</footer>
+<div class="footer-bottom">© 2026 Sabor de Casa – Todos os direitos reservados</div>
+
+<script src="script.js"></script>
+</body>
+</html>
