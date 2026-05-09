@@ -1,6 +1,3 @@
-// === CONEXÃO COM O FIREBASE ===
-// (Sem nenhum 'import' aqui em cima!)
-
 const firebaseConfig = {
   apiKey: "AIzaSyAkZwQ5HNk0oNIAQ-9OGSmpHp4rSBCDe98",
   authDomain: "sabor-de-casa-42bc7.firebaseapp.com",
@@ -11,10 +8,8 @@ const firebaseConfig = {
   measurementId: "G-1H2MW3KCNE"
 };
 
-// Estas duas linhas ligam o seu site ao banco de dados:
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// =================================
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -309,7 +304,6 @@ function validarTelefone(campo) {
   return !temLetra;
 }
 
-// Versão atualizada com Firebase
 async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
   const telCampo = document.getElementById('campo-tel');
@@ -324,7 +318,6 @@ async function confirmarPedido() {
     return;
   }
 
-  // Criamos o objeto com os dados do pedido
   const dadosDoPedido = {
     prato: pratoPedido.nome,
     preco: pratoPedido.preco,
@@ -346,14 +339,12 @@ async function confirmarPedido() {
     dadosDoPedido.endereco = `${rua}, ${num} - ${document.getElementById('campo-bairro').value}`;
   }
 
-  // Efeito de carregamento no botão
   const btnConfirmar = document.querySelector('.btn-confirmar');
   const textoOriginal = btnConfirmar.textContent;
   btnConfirmar.textContent = '⏳ Enviando...';
   btnConfirmar.disabled = true;
 
   try {
-    // ENVIANDO PARA O FIREBASE
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
     mostrarToast(`✓ Pedido de ${pratoPedido.nome} enviado e salvo no Firebase!`);
@@ -366,123 +357,10 @@ async function confirmarPedido() {
   }
 }
 
-// A função mostrarToast pode continuar igual ou você pode colar esta para garantir:
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }
-
-
-// ═══ RESERVAS ═══
-let resPessoas = 2;
-
-function alterarPessoas(delta) {
-  resPessoas = Math.max(1, Math.min(20, resPessoas + delta));
-  document.getElementById('res-pessoas-num').textContent = resPessoas;
-  document.getElementById('pessoas-label').textContent = resPessoas === 1 ? 'pessoa' : 'pessoas';
-}
-
-function validarResNome(campo) {
-  const temNumero = /\d/.test(campo.value);
-  const aviso = document.getElementById('rerro-nome');
-  if (temNumero) { campo.value = campo.value.replace(/\d/g, ''); aviso.style.display = 'block'; }
-  else aviso.style.display = 'none';
-  return !temNumero && campo.value.trim() !== '';
-}
-
-function validarResEmail(campo) {
-  const valido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(campo.value);
-  const aviso = document.getElementById('rerro-email');
-  aviso.style.display = campo.value && !valido ? 'block' : 'none';
-  return valido;
-}
-
-function validarResTel(campo) {
-  const temLetra = /[a-zA-ZÀ-ú]/.test(campo.value);
-  const aviso = document.getElementById('rerro-tel');
-  if (temLetra) { campo.value = campo.value.replace(/[a-zA-ZÀ-ú]/g, ''); aviso.style.display = 'block'; }
-  else aviso.style.display = 'none';
-  return !temLetra && campo.value.trim() !== '';
-}
-
-function atualizarProgress(step) {
-  for (let i = 1; i <= 3; i++) {
-    const ind = document.getElementById('step-ind-' + i);
-    if (!ind) continue;
-    ind.classList.remove('active', 'done');
-    if (i < step) ind.classList.add('done');
-    else if (i === step) ind.classList.add('active');
-  }
-  const lines = document.querySelectorAll('.progress-line');
-  lines.forEach((l, i) => { l.classList.toggle('done', i < step - 1); });
-}
-
-function avancarStep(step) {
-  if (step === 2) {
-    const nome = document.getElementById('res-nome');
-    const email = document.getElementById('res-email');
-    const tel = document.getElementById('res-tel');
-    const nOk = validarResNome(nome) !== false && nome.value.trim() !== '';
-    const eOk = validarResEmail(email);
-    const tOk = validarResTel(tel) !== false && tel.value.trim() !== '';
-    if (!nOk) { document.getElementById('rerro-nome').style.display = 'block'; nome.focus(); return; }
-    if (!eOk) { document.getElementById('rerro-email').style.display = 'block'; email.focus(); return; }
-    if (!tOk) { document.getElementById('rerro-tel').style.display = 'block'; tel.focus(); return; }
-
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const dataMin = hoje.toISOString().split('T')[0];
-    document.getElementById('res-data').min = dataMin;
-  }
-
-  if (step === 3) {
-    const data = document.getElementById('res-data').value;
-    const hora = document.getElementById('res-hora').value;
-    if (!data) { document.getElementById('rerro-data').style.display = 'block'; return; }
-    else document.getElementById('rerro-data').style.display = 'none';
-    if (!hora) { document.getElementById('rerro-hora').style.display = 'block'; return; }
-    else document.getElementById('rerro-hora').style.display = 'none';
-
-    const nome = document.getElementById('res-nome').value.trim();
-    const tel = document.getElementById('res-tel').value.trim();
-    const ocasiao = document.getElementById('res-ocasiao');
-    const ocasiaoTxt = ocasiao.options[ocasiao.selectedIndex].text;
-    const obs = document.getElementById('res-obs').value.trim();
-    const dataFmt = new Date(data + 'T12:00:00').toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-
-    document.getElementById('conf-nome').textContent = nome.split(' ')[0];
-    document.getElementById('conf-tel').textContent = tel;
-    let resumo = `<strong>Data:</strong> ${dataFmt}<br><strong>Horário:</strong> ${hora}<br><strong>Pessoas:</strong> ${resPessoas}<br>`;
-    if (ocasiao.value) resumo += `<strong>Ocasião:</strong> ${ocasiaoTxt}<br>`;
-    if (obs) resumo += `<strong>Observações:</strong> ${obs}`;
-    document.getElementById('conf-resumo').innerHTML = resumo;
-  }
-
-  document.querySelectorAll('.form-step').forEach(s => s.style.display = 'none');
-  document.getElementById('reserva-step-' + step).style.display = 'block';
-  atualizarProgress(step);
-  document.getElementById('reserva-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function voltarStep(step) {
-  document.querySelectorAll('.form-step').forEach(s => s.style.display = 'none');
-  document.getElementById('reserva-step-' + step).style.display = 'block';
-  atualizarProgress(step);
-}
-
-function novaReserva() {
-  document.getElementById('res-nome').value = '';
-  document.getElementById('res-email').value = '';
-  document.getElementById('res-tel').value = '';
-  document.getElementById('res-data').value = '';
-  document.getElementById('res-hora').value = '';
-  document.getElementById('res-ocasiao').value = '';
-  document.getElementById('res-obs').value = '';
-  resPessoas = 2;
-  document.getElementById('res-pessoas-num').textContent = '2';
-  document.getElementById('pessoas-label').textContent = 'pessoas';
-  avancarStep(1);
-}
-// Inicializar
 renderDestaques();
