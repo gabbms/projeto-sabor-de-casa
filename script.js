@@ -1,3 +1,20 @@
+// === CONEXÃO COM O FIREBASE ===
+// (Sem nenhum 'import' aqui em cima!)
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAkZwQ5HNk0oNIAQ-9OGSmpHp4rSBCDe98",
+  authDomain: "sabor-de-casa-42bc7.firebaseapp.com",
+  projectId: "sabor-de-casa-42bc7",
+  storageBucket: "sabor-de-casa-42bc7.firebasestorage.app",
+  messagingSenderId: "377348659218",
+  appId: "1:377348659218:web:a7b7f3bd868565749820cb",
+  measurementId: "G-1H2MW3KCNE"
+};
+
+// Estas duas linhas ligam o seu site ao banco de dados:
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+// =================================
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -292,7 +309,8 @@ function validarTelefone(campo) {
   return !temLetra;
 }
 
-function confirmarPedido() {
+// Versão atualizada com Firebase
+async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
   const telCampo = document.getElementById('campo-tel');
   const entrega = document.getElementById('campo-entrega').value;
@@ -306,6 +324,18 @@ function confirmarPedido() {
     return;
   }
 
+  // Criamos o objeto com os dados do pedido
+  const dadosDoPedido = {
+    prato: pratoPedido.nome,
+    preco: pratoPedido.preco,
+    cliente: nomeCampo.value.trim(),
+    telefone: telCampo.value.trim(),
+    tipoEntrega: entrega,
+    formaPagamento: pag,
+    observacoes: document.getElementById('campo-obs').value.trim(),
+    data: new Date().toLocaleString('pt-BR')
+  };
+
   if (entrega === 'delivery') {
     const rua = document.getElementById('campo-rua').value.trim();
     const num = document.getElementById('campo-num').value.trim();
@@ -313,12 +343,30 @@ function confirmarPedido() {
       mostrarToast('⚠️ Preencha o endereço completo para delivery.');
       return;
     }
+    dadosDoPedido.endereco = `${rua}, ${num} - ${document.getElementById('campo-bairro').value}`;
   }
 
-  fecharModal();
-  mostrarToast(`✓ Pedido de ${pratoPedido.nome} enviado com sucesso!`);
+  // Efeito de carregamento no botão
+  const btnConfirmar = document.querySelector('.btn-confirmar');
+  const textoOriginal = btnConfirmar.textContent;
+  btnConfirmar.textContent = '⏳ Enviando...';
+  btnConfirmar.disabled = true;
+
+  try {
+    // ENVIANDO PARA O FIREBASE
+    await db.collection("pedidos").add(dadosDoPedido);
+    fecharModal();
+    mostrarToast(`✓ Pedido de ${pratoPedido.nome} enviado e salvo no Firebase!`);
+  } catch (erro) {
+    console.error("Erro:", erro);
+    mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
+  } finally {
+    btnConfirmar.textContent = textoOriginal;
+    btnConfirmar.disabled = false;
+  }
 }
 
+// A função mostrarToast pode continuar igual ou você pode colar esta para garantir:
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
