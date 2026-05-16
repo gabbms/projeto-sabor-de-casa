@@ -510,4 +510,6 @@ function mostrarToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-carregarDisponibilidades().then(() => renderDestaques());
+document.addEventListener('DOMContentLoaded', () => {
+  carregarDisponibilidades().then(() => renderDestaques());
+});
