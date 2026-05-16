@@ -2,6 +2,15 @@
 
 Uma plataforma web moderna e responsiva desenvolvida para o restaurante **Sabor de Casa**, especializado em culinária típica piauiense. O projeto combina uma interface elegante com funcionalidades avançadas de front-end e integração com serviços de back-end.
 
+## 👥 Participantes do Grupo
+
+| Nome | 
+|------|
+| Eduardo Castelo Branco Lima |
+| Gabriel Marques |
+| Vinicius Gomes de Oliveira |
+| Clidenor de Carvalho Moura Junior |
+
 ## 📋 Sobre o Projeto
 
 Este projeto foi construído com o objetivo de unir a tradição da comida caseira com a modernidade das tecnologias web. Ele serve como uma demonstração técnica de habilidades em manipulação de DOM, consumo de APIs externas e persistência de dados em tempo real.
@@ -44,3 +53,4 @@ Este projeto foi construído com o objetivo de unir a tradição da comida casei
 ├── style.css      # Estilização, layout responsivo e animações
 ├── script.js     # Lógica do cardápio, validações, API e Firebase
 └── /img           # Pasta contendo as imagens dos pratos e equipe
+```
