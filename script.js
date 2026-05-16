@@ -12,6 +12,7 @@ firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
 const auth = firebase.auth();
 
+// ── Observer de autenticação ──────────────────────────────────────────────────
 auth.onAuthStateChanged(usuario => {
   const loginScreen = document.getElementById('admin-login-screen');
   const painel      = document.getElementById('admin-painel');
@@ -33,6 +34,7 @@ auth.onAuthStateChanged(usuario => {
   }
 });
 
+// ── Dados do cardápio ─────────────────────────────────────────────────────────
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -192,6 +194,7 @@ function renderCard(p, container) {
 
 let disponibilidadesCarregadas = false;
 
+
 async function carregarDisponibilidades() {
   try {
     const snapshot = await db.collection('pratos').get();
@@ -204,7 +207,6 @@ async function carregarDisponibilidades() {
     });
   } catch (erro) {
     console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
-    // Em caso de falha de rede, o site continua com os valores padrão do array
   } finally {
     disponibilidadesCarregadas = true;
   }
@@ -264,7 +266,6 @@ async function togglePrato(id) {
   const btn = document.getElementById('toggle-' + id);
   const lbl = document.getElementById('label-' + id);
 
-  // Desabilita o botão durante a operação para evitar cliques duplos
   btn.disabled = true;
   btn.style.opacity = '0.5';
 
@@ -276,7 +277,6 @@ async function togglePrato(id) {
       { merge: true }
     );
 
-    // Só atualiza memória e UI após confirmação do Firestore
     p.disponivel     = novoEstado;
     btn.classList.toggle('on', p.disponivel);
     lbl.textContent  = p.disponivel ? 'Disponível' : 'Esgotado';
@@ -390,6 +390,7 @@ async function buscarCEP() {
   btn.textContent = 'Buscando...';
   btn.disabled    = true;
 
+  // Timeout de 8 s para não deixar o usuário esperando indefinidamente
   const controller = new AbortController();
   const timeout    = setTimeout(() => controller.abort(), 8000);
 
@@ -463,13 +464,25 @@ async function confirmarPedido() {
   };
 
   if (entrega === 'delivery') {
-    const rua = document.getElementById('campo-rua').value.trim();
-    const num = document.getElementById('campo-num').value.trim();
-    if (!rua || !num) {
-      mostrarToast('⚠️ Preencha o endereço completo para delivery.');
+    const cep    = document.getElementById('campo-cep').value.replace(/\D/g, '');
+    const rua    = document.getElementById('campo-rua').value.trim();
+    const num    = document.getElementById('campo-num').value.trim();
+    const cidade = document.getElementById('campo-cidade').value.trim();
+
+    if (cep.length !== 8 || !cidade) {
+      mostrarToast('⚠️ Busque o CEP antes de confirmar o pedido.');
+      document.getElementById('campo-cep').focus();
       return;
     }
-    dadosDoPedido.endereco = rua + ', ' + num + ' - ' + document.getElementById('campo-bairro').value;
+    if (!rua || !num) {
+      mostrarToast('⚠️ Preencha a rua e o número para delivery.');
+      return;
+    }
+
+    dadosDoPedido.endereco = rua + ', ' + num
+      + ' - ' + document.getElementById('campo-bairro').value.trim()
+      + ' - ' + cidade
+      + ' - CEP ' + document.getElementById('campo-cep').value.trim();
   }
 
   const btnConfirmar  = document.querySelector('.btn-confirmar');
