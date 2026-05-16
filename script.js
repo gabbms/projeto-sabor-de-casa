@@ -1,3 +1,10 @@
+// ⚠️  SEGURANÇA — Credenciais do Firebase
+// Estas chaves ficam visíveis no código-fonte público. Para proteger o projeto:
+//   1. No console do Firebase → Configurações do projeto → Restrições de API:
+//      limite o uso desta apiKey apenas ao(s) domínio(s) do seu site.
+//   2. Em Firestore → Regras: exija autenticação para leitura/escrita sensível.
+//   3. Em Authentication → Configurações: ative apenas os provedores necessários.
+//   4. Nunca exponha chaves de serviço (service account) aqui — essas sim são secretas.
 const firebaseConfig = {
   apiKey: "AIzaSyAkZwQ5HNk0oNIAQ-9OGSmpHp4rSBCDe98",
   authDomain: "sabor-de-casa-42bc7.firebaseapp.com",
@@ -112,7 +119,7 @@ const PRATOS = [
     id:9, nome:"Pudim de Leite", cat:"sobremesa",
     emoji:"🍮", preco:14.00,
     imagem:"./img/pudim.jpeg",
-    desc:"Pudim artesanal com receita secreta da sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
+    desc:"Pudim artesanal com receita secreta do sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
     tags:["individual","contém leite"],
     personalizacoes:["Porção dupla (+R$10)","Calda de chocolate (+R$3)"],
     badge:"Favorito", veggie:true, disponivel:true, destaque:false
@@ -406,6 +413,12 @@ function abrirModal(id) {
   document.getElementById('campo-entrega').value   = '';
   document.getElementById('campo-pagamento').value = '';
   document.getElementById('campo-obs').value       = '';
+  // CORREÇÃO 3: limpar campos de endereço para não vazar dados de pedido anterior
+  document.getElementById('campo-cep').value    = '';
+  document.getElementById('campo-rua').value    = '';
+  document.getElementById('campo-num').value    = '';
+  document.getElementById('campo-bairro').value = '';
+  document.getElementById('campo-cidade').value = '';
   document.getElementById('endereco-wrap').style.display = 'none';
   document.getElementById('erro-nome').style.display    = 'none';
   document.getElementById('erro-tel').style.display     = 'none';
@@ -537,13 +550,15 @@ async function confirmarPedido() {
       document.getElementById('campo-cep').focus();
       return;
     }
-    if (!rua || !num) {
-      mostrarToast('⚠️ Preencha a rua e o número para delivery.');
+    // CORREÇÃO 4: incluir bairro na validação — campo pode vir vazio do ViaCEP
+    const bairro = document.getElementById('campo-bairro').value.trim();
+    if (!rua || !num || !bairro) {
+      mostrarToast('⚠️ Preencha rua, número e bairro para delivery.');
       return;
     }
 
     dadosDoPedido.endereco = rua + ', ' + num
-      + ' - ' + document.getElementById('campo-bairro').value.trim()
+      + ' - ' + bairro
       + ' - ' + cidade
       + ' - CEP ' + document.getElementById('campo-cep').value.trim();
   }
