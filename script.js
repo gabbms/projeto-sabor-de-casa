@@ -350,20 +350,56 @@ function toggleSenha() {
   campo.type  = campo.type === 'password' ? 'text' : 'password';
 }
 
+
+// Extrai o valor extra de uma string de personalização.
+// Ex: "Queijo extra (+R$5)"  →  5
+//     "Sem pimenta"          →  0
+function extrairValorExtra(texto) {
+  const match = texto.match(/\(\+R\$(\d+(?:[.,]\d+)?)\)/);
+  if (!match) return 0;
+  return parseFloat(match[1].replace(',', '.'));
+}
+
+// Recalcula e exibe o preço total (base + adicionais marcados)
+function atualizarPrecoModal() {
+  let total = pratoPedido.preco;
+  document.querySelectorAll('#personaliz-opts input[type="checkbox"]').forEach(cb => {
+    if (cb.checked) total += extrairValorExtra(cb.dataset.extra || '');
+  });
+  const infoEl = document.getElementById('modal-info');
+  const tagsStr = pratoPedido.tags.join(' · ');
+  infoEl.textContent = 'R$' + total.toFixed(2).replace('.', ',') + ' · ' + tagsStr;
+  infoEl.dataset.total = total;
+}
+
 // ── Modal de pedido ───────────────────────────────────────────────────────────
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
-  document.getElementById('modal-info').textContent   = 'R$' + pratoPedido.preco.toFixed(2).replace('.', ',') + ' · ' + pratoPedido.tags.join(' · ');
 
   const opts = document.getElementById('personaliz-opts');
   opts.innerHTML = '';
   pratoPedido.personalizacoes.forEach(function(op, i) {
     const div = document.createElement('div');
     div.className = 'personaliz-opt';
-    div.innerHTML = '<input type="checkbox" id="p' + i + '"><label for="p' + i + '">' + op + '</label>';
+    const cbId = 'p' + pratoPedido.id + '-' + i;
+    const extra = extrairValorExtra(op);
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = cbId;
+    cb.dataset.extra = op;   // guarda o texto completo para extração posterior
+    cb.addEventListener('change', atualizarPrecoModal);
+    const lbl = document.createElement('label');
+    lbl.htmlFor = cbId;
+    lbl.textContent = op;
+    div.appendChild(cb);
+    div.appendChild(lbl);
     opts.appendChild(div);
   });
+
+  // Exibe preço base antes de qualquer seleção
+  atualizarPrecoModal();
+
 
   document.getElementById('campo-nome').value      = '';
   document.getElementById('campo-tel').value       = '';
@@ -465,15 +501,29 @@ async function confirmarPedido() {
     return;
   }
 
+  // Coleta personalizações marcadas e calcula acréscimos
+  const personalizacoesSelecionadas = [];
+  let acrescimos = 0;
+  document.querySelectorAll('#personaliz-opts input[type="checkbox"]').forEach(cb => {
+    if (cb.checked) {
+      personalizacoesSelecionadas.push(cb.dataset.extra);
+      acrescimos += extrairValorExtra(cb.dataset.extra);
+    }
+  });
+  const precoFinal = pratoPedido.preco + acrescimos;
+
   const dadosDoPedido = {
-    prato:          pratoPedido.nome,
-    preco:          pratoPedido.preco,
-    cliente:        nomeCampo.value.trim(),
-    telefone:       telCampo.value.trim(),
-    tipoEntrega:    entrega,
-    formaPagamento: pag,
-    observacoes:    document.getElementById('campo-obs').value.trim(),
-    data:           new Date().toLocaleString('pt-BR')
+     prato:           pratoPedido.nome,
+    precoBase:       pratoPedido.preco,
+    acrescimos:      acrescimos,
+    precoTotal:      precoFinal,
+    personalizacoes: personalizacoesSelecionadas,
+    cliente:         nomeCampo.value.trim(),
+    telefone:        telCampo.value.trim(),
+    tipoEntrega:     entrega,
+    formaPagamento:  pag,
+    observacoes:     document.getElementById('campo-obs').value.trim(),
+    data:            new Date().toLocaleString('pt-BR')
   };
 
   if (entrega === 'delivery') {
@@ -506,7 +556,7 @@ async function confirmarPedido() {
   try {
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
-    mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' enviado e salvo no Firebase!');
+     mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
   } catch (erro) {
     console.error("Erro:", erro);
     mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
