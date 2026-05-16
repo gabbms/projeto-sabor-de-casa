@@ -112,7 +112,7 @@ const PRATOS = [
     id:9, nome:"Pudim de Leite", cat:"sobremesa",
     emoji:"🍮", preco:14.00,
     imagem:"./img/pudim.jpeg",
-    desc:"Pudim artesanal com receita secreta da sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
+    desc:"Pudim artesanal com receita secreta do sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
     tags:["individual","contém leite"],
     personalizacoes:["Porção dupla (+R$10)","Calda de chocolate (+R$3)"],
     badge:"Favorito", veggie:true, disponivel:true, destaque:false
@@ -144,9 +144,15 @@ function mostrarSecao(id, el) {
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  if (id === 'cardapio') renderCardapio();
-  if (id === 'home')     renderDestaques();
-  if (id === 'admin')    renderAdmin();
+  if (id === 'cardapio') {
+    if (!disponibilidadesCarregadas) {
+      carregarDisponibilidades().then(() => renderCardapio());
+    } else {
+      renderCardapio();
+    }
+  }
+  if (id === 'home')  renderDestaques();
+  if (id === 'admin') renderAdmin();
 }
 
 // ── Renderização de cards ─────────────────────────────────────────────────────
@@ -185,6 +191,30 @@ function renderCard(p, container) {
   container.appendChild(div);
   if (p.imagem) {
     div.querySelector('.prato-img').style.backgroundImage = "url('" + p.imagem + "')";
+  }
+}
+
+let disponibilidadesCarregadas = false;
+
+// ── Sincronização de disponibilidade com Firestore ────────────────────────────
+// Carrega os overrides de disponibilidade salvos pelo admin e aplica sobre o
+// array PRATOS antes de qualquer renderização. Pratos sem documento no Firestore
+// mantêm o valor padrão definido em PRATOS.
+async function carregarDisponibilidades() {
+  try {
+    const snapshot = await db.collection('pratos').get();
+    snapshot.forEach(doc => {
+      const dado  = doc.data();
+      const prato = PRATOS.find(p => String(p.id) === doc.id);
+      if (prato && typeof dado.disponivel === 'boolean') {
+        prato.disponivel = dado.disponivel;
+      }
+    });
+  } catch (erro) {
+    console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
+    // Em caso de falha de rede, o site continua com os valores padrão do array
+  } finally {
+    disponibilidadesCarregadas = true;
   }
 }
 
@@ -238,15 +268,39 @@ function renderAdmin() {
   });
 }
 
-function togglePrato(id) {
-  const p = PRATOS.find(x => x.id === id);
-  p.disponivel = !p.disponivel;
+async function togglePrato(id) {
+  const p   = PRATOS.find(x => x.id === id);
   const btn = document.getElementById('toggle-' + id);
   const lbl = document.getElementById('label-' + id);
-  btn.classList.toggle('on', p.disponivel);
-  lbl.textContent = p.disponivel ? 'Disponível' : 'Esgotado';
-  lbl.className   = 'toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text');
-  mostrarToast(p.disponivel ? '✓ ' + p.nome + ' marcado como Disponível' : '⛔ ' + p.nome + ' marcado como Esgotado');
+
+  // Desabilita o botão durante a operação para evitar cliques duplos
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+
+  const novoEstado = !p.disponivel;
+
+  try {
+    await db.collection('pratos').doc(String(id)).set(
+      { disponivel: novoEstado },
+      { merge: true }
+    );
+
+    // Só atualiza memória e UI após confirmação do Firestore
+    p.disponivel     = novoEstado;
+    btn.classList.toggle('on', p.disponivel);
+    lbl.textContent  = p.disponivel ? 'Disponível' : 'Esgotado';
+    lbl.className    = 'toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text');
+    mostrarToast(p.disponivel
+      ? '✓ ' + p.nome + ' marcado como Disponível'
+      : '⛔ ' + p.nome + ' marcado como Esgotado'
+    );
+  } catch (erro) {
+    console.error('Erro ao salvar disponibilidade:', erro);
+    mostrarToast('⚠️ Não foi possível salvar. Verifique sua conexão.');
+  } finally {
+    btn.disabled     = false;
+    btn.style.opacity = '';
+  }
 }
 
 // ── Autenticação ──────────────────────────────────────────────────────────────
@@ -443,4 +497,6 @@ function mostrarToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-renderDestaques();
+// Carrega disponibilidades persistidas no Firestore antes de renderizar qualquer
+// coisa, garantindo que o estado do admin seja refletido desde o primeiro acesso.
+carregarDisponibilidades().then(() => renderDestaques());
