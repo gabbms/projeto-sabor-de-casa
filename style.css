@@ -583,9 +583,8 @@
  
   
   .pessoas-selector {
-    display: flex; align-items: center; gap: 1rem;
+    display: inline-flex; align-items: center; gap: 1rem;
     background: var(--creme); border-radius: 8px; padding: 0.6rem 1rem;
-    display: inline-flex;
   }
   .pessoas-btn {
     width: 32px; height: 32px; border-radius: 50%;
