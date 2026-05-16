@@ -188,13 +188,19 @@ function renderCard(p, container) {
       '<div class="prato-tags">' + tagsHtml + '</div>' +
       '<div class="prato-footer">' +
         '<div class="prato-preco">R$' + p.preco.toFixed(2).replace('.', ',') + '</div>' +
-        '<button class="btn-pedir" onclick="abrirModal(' + p.id + ')" ' + (!p.disponivel ? 'disabled' : '') + '>' +
+        '<button class="btn-pedir"' + (!p.disponivel ? ' disabled' : '') + '>' +
           (p.disponivel ? 'Fazer Pedido' : 'Indisponível') +
         '</button>' +
       '</div>' +
     '</div>';
 
   container.appendChild(div);
+
+  // AVISO 5: usar addEventListener em vez de onclick inline
+  if (p.disponivel) {
+    div.querySelector('.btn-pedir').addEventListener('click', () => abrirModal(p.id));
+  }
+
   if (p.imagem) {
     div.querySelector('.prato-img').style.backgroundImage = "url('" + p.imagem + "')";
   }
@@ -241,6 +247,12 @@ function renderCardapio() {
 function filtrarPratos(cat, btn) {
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+
+  // AVISO 1: garante que o cardápio está renderizado antes de filtrar.
+  // Pode estar vazio se o usuário clicar num filtro antes do carregamento terminar.
+  const grid = document.getElementById('cardapio-grid');
+  if (grid && grid.children.length === 0) renderCardapio();
+
   const cards = document.querySelectorAll('#cardapio-grid .prato-card');
   cards.forEach(c => {
     if (cat === 'todos')       { c.style.display = ''; return; }
@@ -268,9 +280,11 @@ function renderAdmin() {
         '<span class="toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text') + '" id="label-' + p.id + '">' +
           (p.disponivel ? 'Disponível' : 'Esgotado') +
         '</span>' +
-        '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '" onclick="togglePrato(' + p.id + ')"></button>' +
+        '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '"></button>' +
       '</div>';
     lista.appendChild(div);
+    // AVISO 5: usar addEventListener em vez de onclick inline
+    div.querySelector('#toggle-' + p.id).addEventListener('click', () => togglePrato(p.id));
   });
 }
 
@@ -476,14 +490,11 @@ async function buscarCEP() {
 
 // ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
+  // AVISO 2: não apagar dígitos silenciosamente — isso confunde o usuário ao colar texto.
+  // Apenas mostra o aviso; a remoção acontece somente no momento de confirmar o pedido.
   const temNumero = /\d/.test(campo.value);
   const aviso     = document.getElementById('erro-nome');
-  if (temNumero) {
-    campo.value = campo.value.replace(/\d/g, '');
-    aviso.style.display = 'block';
-  } else {
-    aviso.style.display = 'none';
-  }
+  aviso.style.display = temNumero ? 'block' : 'none';
   return !temNumero;
 }
 
@@ -505,6 +516,8 @@ async function confirmarPedido() {
   const pag       = document.getElementById('campo-pagamento').value;
 
   const nomeValido = validarNome(nomeCampo) && nomeCampo.value.trim() !== '';
+  // Remove dígitos do nome somente na hora de enviar (validarNome só avisa inline)
+  if (!nomeValido) nomeCampo.value = nomeCampo.value.replace(/\d/g, '').trim();
   validarTelefone(telCampo);
   const telLimpo  = telCampo.value.replace(/\D/g, '');
   const telValido = telLimpo.length >= 10 && telLimpo.length <= 11;
