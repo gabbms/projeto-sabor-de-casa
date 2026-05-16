@@ -9,7 +9,32 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db   = firebase.firestore();
+const auth = firebase.auth();
+
+// ── Observer de autenticação ──────────────────────────────────────────────────
+auth.onAuthStateChanged(usuario => {
+  const loginScreen = document.getElementById('admin-login-screen');
+  const painel      = document.getElementById('admin-painel');
+  if (!loginScreen || !painel) return;
+
+  if (usuario) {
+    loginScreen.style.display = 'none';
+    painel.style.display      = 'block';
+    const label = document.getElementById('admin-usuario-label');
+    if (label) label.textContent = 'Logado como: ' + usuario.email;
+    renderAdmin();
+  } else {
+    loginScreen.style.display = 'flex';
+    painel.style.display      = 'none';
+    const emailEl = document.getElementById('login-email');
+    const senhaEl = document.getElementById('login-senha');
+    if (emailEl) emailEl.value = '';
+    if (senhaEl) senhaEl.value = '';
+  }
+});
+
+// ── Dados do cardápio ─────────────────────────────────────────────────────────
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -105,62 +130,61 @@ const PRATOS = [
 
 let pratoPedido = null;
 
+// ── Navegação ─────────────────────────────────────────────────────────────────
 function mostrarSecao(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-
   if (el) {
     el.classList.add('active');
   } else {
-    
-    const linkCorrespondente = document.querySelector(`.nav-links a[data-section="${id}"]`);
+    const linkCorrespondente = document.querySelector('.nav-links a[data-section="' + id + '"]');
     if (linkCorrespondente) linkCorrespondente.classList.add('active');
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (id === 'cardapio') renderCardapio();
-  if (id === 'home') renderDestaques();
-  if (id === 'admin') renderAdmin();
+  if (id === 'home')     renderDestaques();
+  if (id === 'admin')    renderAdmin();
 }
 
+// ── Renderização de cards ─────────────────────────────────────────────────────
 function renderCard(p, container) {
   const div = document.createElement('div');
   div.className = 'prato-card' + (p.disponivel ? '' : ' esgotado');
-  div.dataset.cat = p.cat;
+  div.dataset.cat    = p.cat;
   div.dataset.veggie = p.veggie;
 
-  const badgeHtml = p.badge ? `<div class="prato-badge${p.veggie ? ' veggie' : ''}">${p.badge}</div>` : '';
-  const esgotadoHtml = !p.disponivel ? `<div class="esgotado-overlay">⛔ Esgotado</div>` : '';
-  const tagsHtml = p.tags.map(t => {
+  const badgeHtml    = p.badge ? '<div class="prato-badge' + (p.veggie ? ' veggie' : '') + '">' + p.badge + '</div>' : '';
+  const esgotadoHtml = !p.disponivel ? '<div class="esgotado-overlay">Esgotado</div>' : '';
+  const tagsHtml     = p.tags.map(t => {
     let cls = 'tag-alergenico';
     if (t.includes('vegano') || t.includes('vegetariano')) cls = 'tag-veggie';
     if (t.includes('serve') || t.includes('unidades') || t.includes('individual')) cls = 'tag-serve';
-    return `<span class="tag ${cls}">${t}</span>`;
+    return '<span class="tag ' + cls + '">' + t + '</span>';
   }).join('');
 
-  div.innerHTML = `
-    <div class="prato-img${p.imagem ? ' prato-img--foto' : ''}">
-      ${p.imagem ? '' : `<div class="prato-emoji">${p.emoji}</div>`}
-      ${badgeHtml}${esgotadoHtml}
-    </div>
-    <div class="prato-body">
-      <div class="prato-nome">${p.nome}</div>
-      <div class="prato-desc">${p.desc}</div>
-      <div class="prato-tags">${tagsHtml}</div>
-      <div class="prato-footer">
-        <div class="prato-preco">R$${p.preco.toFixed(2).replace('.', ',')}</div>
-        <button class="btn-pedir" onclick="abrirModal(${p.id})" ${!p.disponivel ? 'disabled' : ''}>
-          ${p.disponivel ? 'Fazer Pedido' : 'Indisponível'}
-        </button>
-      </div>
-    </div>`;
-  container.appendChild(div);
+  div.innerHTML =
+    '<div class="prato-img' + (p.imagem ? ' prato-img--foto' : '') + '">' +
+      (p.imagem ? '' : '<div class="prato-emoji">' + p.emoji + '</div>') +
+      badgeHtml + esgotadoHtml +
+    '</div>' +
+    '<div class="prato-body">' +
+      '<div class="prato-nome">' + p.nome + '</div>' +
+      '<div class="prato-desc">' + p.desc + '</div>' +
+      '<div class="prato-tags">' + tagsHtml + '</div>' +
+      '<div class="prato-footer">' +
+        '<div class="prato-preco">R$' + p.preco.toFixed(2).replace('.', ',') + '</div>' +
+        '<button class="btn-pedir" onclick="abrirModal(' + p.id + ')" ' + (!p.disponivel ? 'disabled' : '') + '>' +
+          (p.disponivel ? 'Fazer Pedido' : 'Indisponível') +
+        '</button>' +
+      '</div>' +
+    '</div>';
 
- 
+  container.appendChild(div);
   if (p.imagem) {
-    div.querySelector('.prato-img').style.backgroundImage = `url('${p.imagem}')` ;
+    div.querySelector('.prato-img').style.backgroundImage = "url('" + p.imagem + "')";
   }
 }
 
@@ -183,31 +207,33 @@ function filtrarPratos(cat, btn) {
   btn.classList.add('active');
   const cards = document.querySelectorAll('#cardapio-grid .prato-card');
   cards.forEach(c => {
-    if (cat === 'todos') { c.style.display = ''; return; }
+    if (cat === 'todos')       { c.style.display = ''; return; }
     if (cat === 'vegetariano') { c.style.display = c.dataset.veggie === 'true' ? '' : 'none'; return; }
     c.style.display = c.dataset.cat === cat ? '' : 'none';
   });
 }
 
+// ── Painel admin ──────────────────────────────────────────────────────────────
 function renderAdmin() {
+  if (!auth.currentUser) return;
   const lista = document.getElementById('admin-lista');
   if (!lista) return;
   lista.innerHTML = '';
   PRATOS.forEach(p => {
     const div = document.createElement('div');
     div.className = 'admin-card';
-    div.innerHTML = `
-      <div class="admin-emoji">${p.emoji}</div>
-      <div class="admin-prato-info">
-        <div class="admin-prato-nome">${p.nome}</div>
-        <div class="admin-prato-cat">${p.cat.replace('-', ' ')} · R$${p.preco.toFixed(2).replace('.', ',')}</div>
-      </div>
-      <div class="toggle-wrap">
-        <span class="toggle-label ${p.disponivel ? 'disponivel' : 'esgotado-text'}" id="label-${p.id}">
-          ${p.disponivel ? 'Disponível' : 'Esgotado'}
-        </span>
-        <button class="toggle${p.disponivel ? ' on' : ''}" id="toggle-${p.id}" onclick="togglePrato(${p.id})"></button>
-      </div>`;
+    div.innerHTML =
+      '<div class="admin-emoji">' + p.emoji + '</div>' +
+      '<div class="admin-prato-info">' +
+        '<div class="admin-prato-nome">' + p.nome + '</div>' +
+        '<div class="admin-prato-cat">' + p.cat.replace('-', ' ') + ' · R$' + p.preco.toFixed(2).replace('.', ',') + '</div>' +
+      '</div>' +
+      '<div class="toggle-wrap">' +
+        '<span class="toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text') + '" id="label-' + p.id + '">' +
+          (p.disponivel ? 'Disponível' : 'Esgotado') +
+        '</span>' +
+        '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '" onclick="togglePrato(' + p.id + ')"></button>' +
+      '</div>';
     lista.appendChild(div);
   });
 }
@@ -219,33 +245,81 @@ function togglePrato(id) {
   const lbl = document.getElementById('label-' + id);
   btn.classList.toggle('on', p.disponivel);
   lbl.textContent = p.disponivel ? 'Disponível' : 'Esgotado';
-  lbl.className = 'toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text');
-  mostrarToast(p.disponivel ? `✓ ${p.nome} marcado como Disponível` : `⛔ ${p.nome} marcado como Esgotado`);
+  lbl.className   = 'toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text');
+  mostrarToast(p.disponivel ? '✓ ' + p.nome + ' marcado como Disponível' : '⛔ ' + p.nome + ' marcado como Esgotado');
 }
 
+// ── Autenticação ──────────────────────────────────────────────────────────────
+async function fazerLogin() {
+  const emailEl = document.getElementById('login-email');
+  const senhaEl = document.getElementById('login-senha');
+  const erroEl  = document.getElementById('login-erro');
+  const btnEl   = document.getElementById('btn-login');
+
+  const email = emailEl.value.trim();
+  const senha = senhaEl.value;
+
+  if (!email || !senha) {
+    erroEl.textContent = '⚠️ Preencha e-mail e senha.';
+    erroEl.style.display = 'block';
+    return;
+  }
+
+  btnEl.textContent    = '⏳ Entrando...';
+  btnEl.disabled       = true;
+  erroEl.style.display = 'none';
+
+  try {
+    await auth.signInWithEmailAndPassword(email, senha);
+  } catch (erro) {
+    const msgs = {
+      'auth/user-not-found':     '❌ E-mail não cadastrado.',
+      'auth/wrong-password':     '❌ Senha incorreta.',
+      'auth/invalid-email':      '❌ E-mail inválido.',
+      'auth/too-many-requests':  '❌ Muitas tentativas. Tente mais tarde.',
+      'auth/invalid-credential': '❌ E-mail ou senha incorretos.'
+    };
+    erroEl.textContent   = msgs[erro.code] || '❌ Erro ao autenticar. Tente novamente.';
+    erroEl.style.display = 'block';
+  } finally {
+    btnEl.textContent = 'Entrar';
+    btnEl.disabled    = false;
+  }
+}
+
+async function fazerLogout() {
+  await auth.signOut();
+  mostrarToast('✓ Sessão encerrada com sucesso.');
+}
+
+function toggleSenha() {
+  const campo = document.getElementById('login-senha');
+  campo.type  = campo.type === 'password' ? 'text' : 'password';
+}
+
+// ── Modal de pedido ───────────────────────────────────────────────────────────
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
-  document.getElementById('modal-info').textContent = `R$${pratoPedido.preco.toFixed(2).replace('.', ',')} · ${pratoPedido.tags.join(' · ')}`;
+  document.getElementById('modal-info').textContent   = 'R$' + pratoPedido.preco.toFixed(2).replace('.', ',') + ' · ' + pratoPedido.tags.join(' · ');
 
   const opts = document.getElementById('personaliz-opts');
   opts.innerHTML = '';
-  pratoPedido.personalizacoes.forEach((op, i) => {
+  pratoPedido.personalizacoes.forEach(function(op, i) {
     const div = document.createElement('div');
     div.className = 'personaliz-opt';
-    div.innerHTML = `<input type="checkbox" id="p${i}"><label for="p${i}">${op}</label>`;
+    div.innerHTML = '<input type="checkbox" id="p' + i + '"><label for="p' + i + '">' + op + '</label>';
     opts.appendChild(div);
   });
 
-  document.getElementById('campo-nome').value = '';
-  document.getElementById('campo-tel').value = '';
-  document.getElementById('campo-entrega').value = '';
+  document.getElementById('campo-nome').value      = '';
+  document.getElementById('campo-tel').value       = '';
+  document.getElementById('campo-entrega').value   = '';
   document.getElementById('campo-pagamento').value = '';
-  document.getElementById('campo-obs').value = '';
+  document.getElementById('campo-obs').value       = '';
   document.getElementById('endereco-wrap').style.display = 'none';
-
-  document.getElementById('erro-nome').style.display = 'none';
-  document.getElementById('erro-tel').style.display = 'none';
+  document.getElementById('erro-nome').style.display    = 'none';
+  document.getElementById('erro-tel').style.display     = 'none';
 
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -258,6 +332,7 @@ function toggleDelivery(val) {
   document.getElementById('endereco-wrap').style.display = val === 'delivery' ? 'block' : 'none';
 }
 
+// ── CEP ───────────────────────────────────────────────────────────────────────
 function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
@@ -268,21 +343,22 @@ async function buscarCEP() {
   const cep = document.getElementById('campo-cep').value.replace(/\D/g, '');
   if (cep.length !== 8) { mostrarToast('⚠️ CEP inválido. Informe 8 dígitos.'); return; }
   try {
-    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const res  = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
     const data = await res.json();
     if (data.erro) { mostrarToast('⚠️ CEP não encontrado.'); return; }
-    document.getElementById('campo-rua').value = data.logradouro || '';
-    document.getElementById('campo-bairro').value = data.bairro || '';
-    document.getElementById('campo-cidade').value = `${data.localidade} – ${data.uf}`;
+    document.getElementById('campo-rua').value    = data.logradouro || '';
+    document.getElementById('campo-bairro').value = data.bairro     || '';
+    document.getElementById('campo-cidade').value = data.localidade + ' – ' + data.uf;
     document.getElementById('campo-num').focus();
   } catch (e) {
     mostrarToast('⚠️ Não foi possível buscar o CEP. Preencha manualmente.');
   }
 }
 
+// ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
   const temNumero = /\d/.test(campo.value);
-  const aviso = document.getElementById('erro-nome');
+  const aviso     = document.getElementById('erro-nome');
   if (temNumero) {
     campo.value = campo.value.replace(/\d/g, '');
     aviso.style.display = 'block';
@@ -294,7 +370,7 @@ function validarNome(campo) {
 
 function validarTelefone(campo) {
   const temLetra = /[a-zA-ZÀ-ú]/.test(campo.value);
-  const aviso = document.getElementById('erro-tel');
+  const aviso    = document.getElementById('erro-tel');
   if (temLetra) {
     campo.value = campo.value.replace(/[a-zA-ZÀ-ú]/g, '');
     aviso.style.display = 'block';
@@ -304,14 +380,15 @@ function validarTelefone(campo) {
   return !temLetra;
 }
 
+// ── Envio do pedido ───────────────────────────────────────────────────────────
 async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
-  const telCampo = document.getElementById('campo-tel');
-  const entrega = document.getElementById('campo-entrega').value;
-  const pag = document.getElementById('campo-pagamento').value;
+  const telCampo  = document.getElementById('campo-tel');
+  const entrega   = document.getElementById('campo-entrega').value;
+  const pag       = document.getElementById('campo-pagamento').value;
 
   const nomeValido = validarNome(nomeCampo) && nomeCampo.value.trim() !== '';
-  const telValido = validarTelefone(telCampo) && telCampo.value.trim() !== '';
+  const telValido  = validarTelefone(telCampo) && telCampo.value.trim() !== '';
 
   if (!nomeValido || !telValido || !entrega || !pag) {
     mostrarToast('⚠️ Por favor, preencha todos os campos obrigatórios corretamente.');
@@ -319,14 +396,14 @@ async function confirmarPedido() {
   }
 
   const dadosDoPedido = {
-    prato: pratoPedido.nome,
-    preco: pratoPedido.preco,
-    cliente: nomeCampo.value.trim(),
-    telefone: telCampo.value.trim(),
-    tipoEntrega: entrega,
+    prato:          pratoPedido.nome,
+    preco:          pratoPedido.preco,
+    cliente:        nomeCampo.value.trim(),
+    telefone:       telCampo.value.trim(),
+    tipoEntrega:    entrega,
     formaPagamento: pag,
-    observacoes: document.getElementById('campo-obs').value.trim(),
-    data: new Date().toLocaleString('pt-BR')
+    observacoes:    document.getElementById('campo-obs').value.trim(),
+    data:           new Date().toLocaleString('pt-BR')
   };
 
   if (entrega === 'delivery') {
@@ -336,31 +413,34 @@ async function confirmarPedido() {
       mostrarToast('⚠️ Preencha o endereço completo para delivery.');
       return;
     }
-    dadosDoPedido.endereco = `${rua}, ${num} - ${document.getElementById('campo-bairro').value}`;
+    dadosDoPedido.endereco = rua + ', ' + num + ' - ' + document.getElementById('campo-bairro').value;
   }
 
-  const btnConfirmar = document.querySelector('.btn-confirmar');
+  const btnConfirmar  = document.querySelector('.btn-confirmar');
   const textoOriginal = btnConfirmar.textContent;
   btnConfirmar.textContent = '⏳ Enviando...';
-  btnConfirmar.disabled = true;
+  btnConfirmar.disabled    = true;
 
   try {
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
-    mostrarToast(`✓ Pedido de ${pratoPedido.nome} enviado e salvo no Firebase!`);
+    mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' enviado e salvo no Firebase!');
   } catch (erro) {
     console.error("Erro:", erro);
     mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
   } finally {
     btnConfirmar.textContent = textoOriginal;
-    btnConfirmar.disabled = false;
+    btnConfirmar.disabled    = false;
   }
 }
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 renderDestaques();
