@@ -130,6 +130,7 @@ const PRATOS = [
 
 let pratoPedido = null;
 
+// ── Navegação ─────────────────────────────────────────────────────────────────
 function mostrarSecao(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -154,6 +155,7 @@ function mostrarSecao(id, el) {
   if (id === 'admin') renderAdmin();
 }
 
+// ── Renderização de cards ─────────────────────────────────────────────────────
 function renderCard(p, container) {
   const div = document.createElement('div');
   div.className = 'prato-card' + (p.disponivel ? '' : ' esgotado');
@@ -194,7 +196,10 @@ function renderCard(p, container) {
 
 let disponibilidadesCarregadas = false;
 
-
+// ── Sincronização de disponibilidade com Firestore ────────────────────────────
+// Carrega os overrides de disponibilidade salvos pelo admin e aplica sobre o
+// array PRATOS antes de qualquer renderização. Pratos sem documento no Firestore
+// mantêm o valor padrão definido em PRATOS.
 async function carregarDisponibilidades() {
   try {
     const snapshot = await db.collection('pratos').get();
@@ -207,6 +212,7 @@ async function carregarDisponibilidades() {
     });
   } catch (erro) {
     console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
+    // Em caso de falha de rede, o site continua com os valores padrão do array
   } finally {
     disponibilidadesCarregadas = true;
   }
@@ -237,6 +243,7 @@ function filtrarPratos(cat, btn) {
   });
 }
 
+// ── Painel admin ──────────────────────────────────────────────────────────────
 function renderAdmin() {
   if (!auth.currentUser) return;
   const lista = document.getElementById('admin-lista');
@@ -266,6 +273,7 @@ async function togglePrato(id) {
   const btn = document.getElementById('toggle-' + id);
   const lbl = document.getElementById('label-' + id);
 
+  // Desabilita o botão durante a operação para evitar cliques duplos
   btn.disabled = true;
   btn.style.opacity = '0.5';
 
@@ -277,6 +285,7 @@ async function togglePrato(id) {
       { merge: true }
     );
 
+    // Só atualiza memória e UI após confirmação do Firestore
     p.disponivel     = novoEstado;
     btn.classList.toggle('on', p.disponivel);
     lbl.textContent  = p.disponivel ? 'Disponível' : 'Esgotado';
@@ -294,6 +303,7 @@ async function togglePrato(id) {
   }
 }
 
+// ── Autenticação ──────────────────────────────────────────────────────────────
 async function fazerLogin() {
   const emailEl = document.getElementById('login-email');
   const senhaEl = document.getElementById('login-senha');
@@ -341,6 +351,7 @@ function toggleSenha() {
   campo.type  = campo.type === 'password' ? 'text' : 'password';
 }
 
+// ── Modal de pedido ───────────────────────────────────────────────────────────
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
@@ -375,6 +386,7 @@ function toggleDelivery(val) {
   document.getElementById('endereco-wrap').style.display = val === 'delivery' ? 'block' : 'none';
 }
 
+// ── CEP ───────────────────────────────────────────────────────────────────────
 function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
@@ -414,6 +426,7 @@ async function buscarCEP() {
   }
 }
 
+// ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
   const temNumero = /\d/.test(campo.value);
   const aviso     = document.getElementById('erro-nome');
@@ -438,6 +451,7 @@ function validarTelefone(campo) {
   return !temLetra;
 }
 
+// ── Envio do pedido ───────────────────────────────────────────────────────────
 async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
   const telCampo  = document.getElementById('campo-tel');
@@ -503,6 +517,7 @@ async function confirmarPedido() {
   }
 }
 
+// ── Toast ─────────────────────────────────────────────────────────────────────
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -510,6 +525,76 @@ function mostrarToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
+
+// ── Event listeners ────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Nav principal + rodapé: qualquer <a data-section="..."> navega para a seção
+  document.querySelectorAll('a[data-section]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      mostrarSecao(link.dataset.section, link);
+    });
+  });
+
+  // Filtros do cardápio
+  document.querySelectorAll('.filtro-btn').forEach(btn => {
+    btn.addEventListener('click', () => filtrarPratos(btn.dataset.cat, btn));
+  });
+
+  // Login: Enter nos campos de e-mail e senha
+  ['login-email', 'login-senha'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') fazerLogin();
+    });
+  });
+
+  // Login: botão Entrar
+  document.getElementById('btn-login')
+    .addEventListener('click', fazerLogin);
+
+  // Login: mostrar/ocultar senha
+  document.getElementById('btn-toggle-senha')
+    .addEventListener('click', toggleSenha);
+
+  // Admin: botão Sair
+  document.getElementById('btn-logout')
+    .addEventListener('click', fazerLogout);
+
+  // Modal: fechar pelo botão X
+  document.getElementById('btn-fechar-modal')
+    .addEventListener('click', fecharModal);
+
+  // Modal: fechar clicando no overlay
+  document.getElementById('modalOverlay')
+    .addEventListener('click', e => {
+      if (e.target.id === 'modalOverlay') fecharModal();
+    });
+
+  // Modal: validação ao digitar nome
+  document.getElementById('campo-nome')
+    .addEventListener('input', function() { validarNome(this); });
+
+  // Modal: validação ao digitar telefone
+  document.getElementById('campo-tel')
+    .addEventListener('input', function() { validarTelefone(this); });
+
+  // Modal: alternar campos de endereço conforme tipo de entrega
+  document.getElementById('campo-entrega')
+    .addEventListener('change', function() { toggleDelivery(this.value); });
+
+  // Modal: formatar CEP ao digitar
+  document.getElementById('campo-cep')
+    .addEventListener('input', function() { formatarCEP(this); });
+
+  // Modal: buscar CEP
+  document.getElementById('btn-buscar-cep')
+    .addEventListener('click', buscarCEP);
+
+  // Modal: confirmar pedido
+  document.getElementById('btn-confirmar-pedido')
+    .addEventListener('click', confirmarPedido);
+
+  // Init: carregar disponibilidades do Firestore e renderizar destaques
   carregarDisponibilidades().then(() => renderDestaques());
 });

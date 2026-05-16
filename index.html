@@ -13,10 +13,10 @@
 <nav>
   <div class="nav-logo">Sabor <span>de Casa</span></div>
   <div class="nav-links">
-    <a href="#" class="active" onclick="mostrarSecao('home',this)">Início</a>
-    <a href="#" onclick="mostrarSecao('cardapio',this)">Cardápio</a>
-    <a href="#" onclick="mostrarSecao('sobre',this)">Nossa História</a>
-    <a href="#" class="admin-btn" onclick="mostrarSecao('admin',this)">⚙ Gestão</a>
+    <a href="#" class="active" data-section="home">Início</a>
+    <a href="#" data-section="cardapio">Cardápio</a>
+    <a href="#" data-section="sobre">Nossa História</a>
+    <a href="#" class="admin-btn" data-section="admin">⚙ Gestão</a>
   </div>
 </nav>
 
@@ -48,11 +48,11 @@
     <p class="section-sub">Pratos preparados com carinho, ingredientes frescos e muito sabor</p>
 
     <div class="filtros">
-      <button class="filtro-btn active" onclick="filtrarPratos('todos',this)">Todos</button>
-      <button class="filtro-btn" onclick="filtrarPratos('prato-principal',this)">Pratos Principais</button>
-      <button class="filtro-btn" onclick="filtrarPratos('porcao',this)">Porções</button>
-      <button class="filtro-btn" onclick="filtrarPratos('vegetariano',this)">Vegetarianos</button>
-      <button class="filtro-btn" onclick="filtrarPratos('sobremesa',this)">Sobremesas</button>
+      <button class="filtro-btn active" data-cat="todos">Todos</button>
+      <button class="filtro-btn" data-cat="prato-principal">Pratos Principais</button>
+      <button class="filtro-btn" data-cat="porcao">Porções</button>
+      <button class="filtro-btn" data-cat="vegetariano">Vegetarianos</button>
+      <button class="filtro-btn" data-cat="sobremesa">Sobremesas</button>
     </div>
 
     <div class="pratos-grid" id="cardapio-grid"></div>
@@ -137,18 +137,18 @@
       <div class="form-group">
         <label>E-mail</label>
         <input type="email" id="login-email" placeholder="admin@sabordecasa.com.br"
-               onkeydown="if(event.key==='Enter') fazerLogin()">
+>
       </div>
       <div class="form-group">
         <label>Senha</label>
         <div class="login-senha-wrap">
           <input type="password" id="login-senha" placeholder="••••••••"
-                 onkeydown="if(event.key==='Enter') fazerLogin()">
-          <button class="login-olho" onclick="toggleSenha()" type="button" title="Mostrar/ocultar senha">👁</button>
+>
+          <button class="login-olho" id="btn-toggle-senha" type="button" title="Mostrar/ocultar senha">👁</button>
         </div>
       </div>
 
-      <button class="btn-login" id="btn-login" onclick="fazerLogin()">Entrar</button>
+      <button class="btn-login" id="btn-login">Entrar</button>
     </div>
   </div>
 
@@ -162,7 +162,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:1rem;">
           <div class="admin-icon">🍽️</div>
-          <button class="btn-logout" onclick="fazerLogout()">Sair</button>
+          <button class="btn-logout" id="btn-logout">Sair</button>
         </div>
       </div>
       <div id="admin-lista"></div>
@@ -173,7 +173,7 @@
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <button class="modal-close" id="btn-fechar-modal">✕</button>
     <h2 id="modal-titulo">Fazer Pedido</h2>
     <p class="modal-prato-info" id="modal-info"></p>
 
@@ -184,21 +184,21 @@
 
     <div class="form-group">
       <label>Seu Nome *</label>
-      <input type="text" id="campo-nome" placeholder="Como podemos te chamar?" oninput="validarNome(this)">
+      <input type="text" id="campo-nome" placeholder="Como podemos te chamar?" >
       <div id="erro-nome" class="erro-msg">
         ⚠️ O nome não pode conter números.
       </div>
     </div>
     <div class="form-group">
       <label>Telefone *</label>
-      <input type="tel" id="campo-tel" placeholder="(98) 9XXXX-XXXX" oninput="validarTelefone(this)">
+      <input type="tel" id="campo-tel" placeholder="(98) 9XXXX-XXXX" >
       <div id="erro-tel" class="erro-msg">
         ⚠️ O telefone deve conter apenas números.
       </div>
     </div>
     <div class="form-group">
       <label>Tipo de Entrega *</label>
-      <select id="campo-entrega" onchange="toggleDelivery(this.value)">
+      <select id="campo-entrega" >
         <option value="">Selecione...</option>
         <option value="retirada">🏠 Retirada no Local</option>
         <option value="delivery">🛵 Delivery</option>
@@ -209,8 +209,8 @@
       <div class="form-group">
         <label>CEP *</label>
         <div class="cep-row">
-          <input type="text" id="campo-cep" placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)">
-          <button class="cep-btn" onclick="buscarCEP()">Buscar CEP</button>
+          <input type="text" id="campo-cep" placeholder="00000-000" maxlength="9" >
+          <button class="cep-btn" id="btn-buscar-cep">Buscar CEP</button>
         </div>
       </div>
       <div class="form-row">
@@ -251,7 +251,7 @@
       <textarea id="campo-obs" rows="2" placeholder="Alguma preferência especial, restrição alimentar ou mensagem?" class="textarea-obs"></textarea>
     </div>
 
-    <button class="btn-confirmar" onclick="confirmarPedido()">✓ Confirmar Pedido</button>
+    <button class="btn-confirmar" id="btn-confirmar-pedido">✓ Confirmar Pedido</button>
   </div>
 </div>
 
@@ -272,8 +272,8 @@
   </div>
   <div>
     <h4>Links</h4>
-    <a href="#" onclick="mostrarSecao('cardapio',null)">Cardápio</a>
-    <a href="#" onclick="mostrarSecao('sobre',null)">Nossa História</a>
+    <a href="#" data-section="cardapio">Cardápio</a>
+    <a href="#" data-section="sobre">Nossa História</a>
     <a href="#">Instagram</a>
     <a href="#">WhatsApp</a>
   </div>
