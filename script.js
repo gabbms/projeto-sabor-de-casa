@@ -12,7 +12,6 @@ firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
 const auth = firebase.auth();
 
-// ── Observer de autenticação ──────────────────────────────────────────────────
 auth.onAuthStateChanged(usuario => {
   const loginScreen = document.getElementById('admin-login-screen');
   const painel      = document.getElementById('admin-painel');
@@ -34,7 +33,6 @@ auth.onAuthStateChanged(usuario => {
   }
 });
 
-// ── Dados do cardápio ─────────────────────────────────────────────────────────
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -112,7 +110,7 @@ const PRATOS = [
     id:9, nome:"Pudim de Leite", cat:"sobremesa",
     emoji:"🍮", preco:14.00,
     imagem:"./img/pudim.jpeg",
-    desc:"Pudim artesanal com receita secreta do sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
+    desc:"Pudim artesanal com receita secreta da sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
     tags:["individual","contém leite"],
     personalizacoes:["Porção dupla (+R$10)","Calda de chocolate (+R$3)"],
     badge:"Favorito", veggie:true, disponivel:true, destaque:false
@@ -130,7 +128,6 @@ const PRATOS = [
 
 let pratoPedido = null;
 
-// ── Navegação ─────────────────────────────────────────────────────────────────
 function mostrarSecao(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -155,7 +152,6 @@ function mostrarSecao(id, el) {
   if (id === 'admin') renderAdmin();
 }
 
-// ── Renderização de cards ─────────────────────────────────────────────────────
 function renderCard(p, container) {
   const div = document.createElement('div');
   div.className = 'prato-card' + (p.disponivel ? '' : ' esgotado');
@@ -196,10 +192,6 @@ function renderCard(p, container) {
 
 let disponibilidadesCarregadas = false;
 
-// ── Sincronização de disponibilidade com Firestore ────────────────────────────
-// Carrega os overrides de disponibilidade salvos pelo admin e aplica sobre o
-// array PRATOS antes de qualquer renderização. Pratos sem documento no Firestore
-// mantêm o valor padrão definido em PRATOS.
 async function carregarDisponibilidades() {
   try {
     const snapshot = await db.collection('pratos').get();
@@ -243,7 +235,6 @@ function filtrarPratos(cat, btn) {
   });
 }
 
-// ── Painel admin ──────────────────────────────────────────────────────────────
 function renderAdmin() {
   if (!auth.currentUser) return;
   const lista = document.getElementById('admin-lista');
@@ -303,7 +294,6 @@ async function togglePrato(id) {
   }
 }
 
-// ── Autenticação ──────────────────────────────────────────────────────────────
 async function fazerLogin() {
   const emailEl = document.getElementById('login-email');
   const senhaEl = document.getElementById('login-senha');
@@ -351,7 +341,6 @@ function toggleSenha() {
   campo.type  = campo.type === 'password' ? 'text' : 'password';
 }
 
-// ── Modal de pedido ───────────────────────────────────────────────────────────
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
@@ -386,7 +375,6 @@ function toggleDelivery(val) {
   document.getElementById('endereco-wrap').style.display = val === 'delivery' ? 'block' : 'none';
 }
 
-// ── CEP ───────────────────────────────────────────────────────────────────────
 function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
@@ -396,8 +384,17 @@ function formatarCEP(el) {
 async function buscarCEP() {
   const cep = document.getElementById('campo-cep').value.replace(/\D/g, '');
   if (cep.length !== 8) { mostrarToast('⚠️ CEP inválido. Informe 8 dígitos.'); return; }
+
+  const btn = document.querySelector('.cep-btn');
+  const textoOriginal = btn.textContent;
+  btn.textContent = 'Buscando...';
+  btn.disabled    = true;
+
+  const controller = new AbortController();
+  const timeout    = setTimeout(() => controller.abort(), 8000);
+
   try {
-    const res  = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const res  = await fetch('https://viacep.com.br/ws/' + cep + '/json/', { signal: controller.signal });
     const data = await res.json();
     if (data.erro) { mostrarToast('⚠️ CEP não encontrado.'); return; }
     document.getElementById('campo-rua').value    = data.logradouro || '';
@@ -405,11 +402,17 @@ async function buscarCEP() {
     document.getElementById('campo-cidade').value = data.localidade + ' – ' + data.uf;
     document.getElementById('campo-num').focus();
   } catch (e) {
-    mostrarToast('⚠️ Não foi possível buscar o CEP. Preencha manualmente.');
+    const msg = e.name === 'AbortError'
+      ? '⚠️ A busca demorou demais. Verifique sua conexão ou preencha manualmente.'
+      : '⚠️ Não foi possível buscar o CEP. Preencha manualmente.';
+    mostrarToast(msg);
+  } finally {
+    clearTimeout(timeout);
+    btn.textContent = textoOriginal;
+    btn.disabled    = false;
   }
 }
 
-// ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
   const temNumero = /\d/.test(campo.value);
   const aviso     = document.getElementById('erro-nome');
@@ -434,7 +437,6 @@ function validarTelefone(campo) {
   return !temLetra;
 }
 
-// ── Envio do pedido ───────────────────────────────────────────────────────────
 async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
   const telCampo  = document.getElementById('campo-tel');
@@ -488,7 +490,6 @@ async function confirmarPedido() {
   }
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -496,7 +497,4 @@ function mostrarToast(msg) {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-// Carrega disponibilidades persistidas no Firestore antes de renderizar qualquer
-// coisa, garantindo que o estado do admin seja refletido desde o primeiro acesso.
 carregarDisponibilidades().then(() => renderDestaques());
