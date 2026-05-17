@@ -117,15 +117,6 @@
     margin-bottom: 0.5rem;
   }
   .section-sub { text-align: center; color: var(--cinza); margin-bottom: 2.5rem; font-weight: 300; }
-  .section-divider {
-    display: flex; align-items: center; justify-content: center;
-    gap: 1rem; margin-bottom: 2.5rem;
-  }
-  .section-divider::before, .section-divider::after {
-    content: ''; flex: 1; max-width: 120px; height: 1px; background: var(--ouro);
-  }
-  .section-divider span { color: var(--ouro); font-size: 1.2rem; }
-
   .filtros {
     display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
     margin-bottom: 2rem;
