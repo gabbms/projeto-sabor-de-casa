@@ -1,10 +1,3 @@
-// ⚠️  SEGURANÇA — Credenciais do Firebase
-// Estas chaves ficam visíveis no código-fonte público. Para proteger o projeto:
-//   1. No console do Firebase → Configurações do projeto → Restrições de API:
-//      limite o uso desta apiKey apenas ao(s) domínio(s) do seu site.
-//   2. Em Firestore → Regras: exija autenticação para leitura/escrita sensível.
-//   3. Em Authentication → Configurações: ative apenas os provedores necessários.
-//   4. Nunca exponha chaves de serviço (service account) aqui — essas sim são secretas.
 const firebaseConfig = {
   apiKey: "AIzaSyAkZwQ5HNk0oNIAQ-9OGSmpHp4rSBCDe98",
   authDomain: "sabor-de-casa-42bc7.firebaseapp.com",
@@ -19,7 +12,7 @@ firebase.initializeApp(firebaseConfig);
 const db   = firebase.firestore();
 const auth = firebase.auth();
 
-// ── Observer de autenticação ──────────────────────────────────────────────────
+//Observer de autenticação 
 auth.onAuthStateChanged(async usuario => {
   const loginScreen = document.getElementById('admin-login-screen');
   const painel      = document.getElementById('admin-painel');
@@ -31,9 +24,6 @@ auth.onAuthStateChanged(async usuario => {
     const label = document.getElementById('admin-usuario-label');
     if (label) label.textContent = 'Logado como: ' + usuario.email;
 
-    // Aguarda o carregamento das disponibilidades antes de renderizar o painel.
-    // Como carregarDisponibilidades() retorna sempre a mesma Promise, chamadas
-    // paralelas não geram requisições duplicadas ao Firestore.
     await carregarDisponibilidades();
     renderAdmin();
   } else {
@@ -46,7 +36,7 @@ auth.onAuthStateChanged(async usuario => {
   }
 });
 
-// ── Dados do cardápio ─────────────────────────────────────────────────────────
+//Dados do cardápio 
 const PRATOS = [
   {
     id:1, nome:"Feijoada Completa", cat:"prato-principal",
@@ -142,7 +132,7 @@ const PRATOS = [
 
 let pratoPedido = null;
 
-// ── Navegação ─────────────────────────────────────────────────────────────────
+//Navegação
 function mostrarSecao(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -162,7 +152,7 @@ function mostrarSecao(id, el) {
   if (id === 'home')  renderDestaques();
 }
 
-// ── Renderização de cards ─────────────────────────────────────────────────────
+//Renderização de cards
 function renderCard(p, container) {
   const div = document.createElement('div');
   div.className = 'prato-card' + (p.disponivel ? '' : ' esgotado');
@@ -197,7 +187,7 @@ function renderCard(p, container) {
 
   container.appendChild(div);
 
-  // AVISO 5: usar addEventListener em vez de onclick inline
+ 
   if (p.disponivel) {
     div.querySelector('.btn-pedir').addEventListener('click', () => abrirModal(p.id));
   }
@@ -207,11 +197,6 @@ function renderCard(p, container) {
   }
 }
 
-// ── Sincronização de disponibilidade com Firestore ────────────────────────────
-// Promise compartilhada: garante que o Firestore seja consultado apenas uma vez,
-// mesmo que carregarDisponibilidades() seja chamada em paralelo (ex: DOMContentLoaded
-// e onAuthStateChanged disparando ao mesmo tempo). Chamadas subsequentes recebem
-// a mesma Promise já resolvida, eliminando o race condition.
 let disponibilidadesPromise = null;
 
 function carregarDisponibilidades() {
@@ -228,8 +213,6 @@ function carregarDisponibilidades() {
       })
       .catch(erro => {
         console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
-        // Em caso de falha de rede, o site continua com os valores padrão do array.
-        // Resetamos a Promise para permitir nova tentativa na próxima navegação.
         disponibilidadesPromise = null;
       });
   }
@@ -254,8 +237,6 @@ function filtrarPratos(cat, btn) {
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  // AVISO 1: garante que o cardápio está renderizado antes de filtrar.
-  // Pode estar vazio se o usuário clicar num filtro antes do carregamento terminar.
   const grid = document.getElementById('cardapio-grid');
   if (grid && grid.children.length === 0) renderCardapio();
 
@@ -267,7 +248,7 @@ function filtrarPratos(cat, btn) {
   });
 }
 
-// ── Painel admin ──────────────────────────────────────────────────────────────
+//Painel admin
 function renderAdmin() {
   if (!auth.currentUser) return;
   const lista = document.getElementById('admin-lista');
@@ -289,7 +270,6 @@ function renderAdmin() {
         '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '"></button>' +
       '</div>';
     lista.appendChild(div);
-    // AVISO 5: usar addEventListener em vez de onclick inline
     div.querySelector('#toggle-' + p.id).addEventListener('click', () => togglePrato(p.id));
   });
 }
@@ -299,7 +279,7 @@ async function togglePrato(id) {
   const btn = document.getElementById('toggle-' + id);
   const lbl = document.getElementById('label-' + id);
 
-  // Desabilita o botão durante a operação para evitar cliques duplos
+
   btn.disabled = true;
   btn.style.opacity = '0.5';
 
@@ -311,7 +291,7 @@ async function togglePrato(id) {
       { merge: true }
     );
 
-    // Só atualiza memória e UI após confirmação do Firestore
+    //
     p.disponivel     = novoEstado;
     btn.classList.toggle('on', p.disponivel);
     lbl.textContent  = p.disponivel ? 'Disponível' : 'Esgotado';
@@ -329,7 +309,7 @@ async function togglePrato(id) {
   }
 }
 
-// ── Autenticação ──────────────────────────────────────────────────────────────
+//Autenticação 
 async function fazerLogin() {
   const emailEl = document.getElementById('login-email');
   const senhaEl = document.getElementById('login-senha');
@@ -378,9 +358,6 @@ function toggleSenha() {
 }
 
 
-// Extrai o valor extra de uma string de personalização.
-// Ex: "Queijo extra (+R$5)"  →  5
-//     "Sem pimenta"          →  0
 function extrairValorExtra(texto) {
   const match = texto.match(/\(\+R\$(\d+(?:[.,]\d+)?)\)/);
   if (!match) return 0;
@@ -399,7 +376,7 @@ function atualizarPrecoModal() {
   infoEl.dataset.total = total;
 }
 
-// ── Modal de pedido ───────────────────────────────────────────────────────────
+//Modal de pedido 
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
@@ -414,7 +391,7 @@ function abrirModal(id) {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.id = cbId;
-    cb.dataset.extra = op;   // guarda o texto completo para extração posterior
+    cb.dataset.extra = op;   
     cb.addEventListener('change', atualizarPrecoModal);
     const lbl = document.createElement('label');
     lbl.htmlFor = cbId;
@@ -433,7 +410,6 @@ function abrirModal(id) {
   document.getElementById('campo-entrega').value   = '';
   document.getElementById('campo-pagamento').value = '';
   document.getElementById('campo-obs').value       = '';
-  // CORREÇÃO 3: limpar campos de endereço para não vazar dados de pedido anterior
   document.getElementById('campo-cep').value    = '';
   document.getElementById('campo-rua').value    = '';
   document.getElementById('campo-num').value    = '';
@@ -454,7 +430,7 @@ function toggleDelivery(val) {
   document.getElementById('endereco-wrap').style.display = val === 'delivery' ? 'block' : 'none';
 }
 
-// ── CEP ───────────────────────────────────────────────────────────────────────
+//CEP
 function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5, 8);
@@ -494,10 +470,8 @@ async function buscarCEP() {
   }
 }
 
-// ── Validações ────────────────────────────────────────────────────────────────
+//Validações
 function validarNome(campo) {
-  // AVISO 2: não apagar dígitos silenciosamente — isso confunde o usuário ao colar texto.
-  // Apenas mostra o aviso; a remoção acontece somente no momento de confirmar o pedido.
   const temNumero = /\d/.test(campo.value);
   const aviso     = document.getElementById('erro-nome');
   aviso.style.display = temNumero ? 'block' : 'none';
@@ -514,7 +488,7 @@ function validarTelefone(campo) {
   return valido;
 }
 
-// ── Envio do pedido ───────────────────────────────────────────────────────────
+//Envio do pedido
 async function confirmarPedido() {
   const nomeCampo = document.getElementById('campo-nome');
   const telCampo  = document.getElementById('campo-tel');
@@ -600,7 +574,7 @@ async function confirmarPedido() {
   }
 }
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+//Toast
 function mostrarToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -609,10 +583,10 @@ function mostrarToast(msg) {
 }
 
 
-// ── Event listeners ────────────────────────────────────────────────────────────
+//Event listeners
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Nav principal + rodapé: qualquer <a data-section="..."> navega para a seção
+  
   document.querySelectorAll('a[data-section]').forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -620,64 +594,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Filtros do cardápio
+  //Filtros do cardápio
   document.querySelectorAll('.filtro-btn').forEach(btn => {
     btn.addEventListener('click', () => filtrarPratos(btn.dataset.cat, btn));
   });
 
-  // Login: Enter nos campos de e-mail e senha
+  //Enter nos campos de e-mail e senha
   ['login-email', 'login-senha'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') fazerLogin();
     });
   });
 
-  // Login: botão Entrar
+  //botão Entrar
   document.getElementById('btn-login')
     .addEventListener('click', fazerLogin);
 
-  // Login: mostrar/ocultar senha
+  //mostrar/ocultar senha
   document.getElementById('btn-toggle-senha')
     .addEventListener('click', toggleSenha);
 
-  // Admin: botão Sair
+  // botão Sair
   document.getElementById('btn-logout')
     .addEventListener('click', fazerLogout);
 
-  // Modal: fechar pelo botão X
+  //fechar pelo botão X
   document.getElementById('btn-fechar-modal')
     .addEventListener('click', fecharModal);
 
-  // Modal: fechar clicando no overlay
+  //fechar clicando no overlay
   document.getElementById('modalOverlay')
     .addEventListener('click', e => {
       if (e.target.id === 'modalOverlay') fecharModal();
     });
 
-  // Modal: validação ao digitar nome
+  //validação ao digitar nome
   document.getElementById('campo-nome')
     .addEventListener('input', function() { validarNome(this); });
 
-  // Modal: validação ao digitar telefone
+  //validação ao digitar telefone
   document.getElementById('campo-tel')
     .addEventListener('input', function() { validarTelefone(this); });
 
-  // Modal: alternar campos de endereço conforme tipo de entrega
+  //alternar campos de endereço conforme tipo de entrega
   document.getElementById('campo-entrega')
     .addEventListener('change', function() { toggleDelivery(this.value); });
 
-  // Modal: formatar CEP ao digitar
+  //formatar CEP ao digitar
   document.getElementById('campo-cep')
     .addEventListener('input', function() { formatarCEP(this); });
 
-  // Modal: buscar CEP
+  //buscar CEP
   document.getElementById('btn-buscar-cep')
     .addEventListener('click', buscarCEP);
 
-  // Modal: confirmar pedido
+  //confirmar pedido
   document.getElementById('btn-confirmar-pedido')
     .addEventListener('click', confirmarPedido);
 
-  // Init: carregar disponibilidades do Firestore e renderizar destaques
+  //carregar disponibilidades do Firestore e renderizar destaques
   carregarDisponibilidades().then(() => renderDestaques());
 });

@@ -361,7 +361,7 @@
     content: attr(data-letter);
     font-size: 1.8rem;
   }
-  /* Estilos da Equipe no style.css */
+  
 
   .avatar-vinicius {
     background: var(--verde);
@@ -473,14 +473,14 @@
      — 400px   mobile pequeno (ex: iPhone SE)
   ══════════════════════════════════════════════ */
 
-  /* ── Tablet landscape ── */
+
   @media (max-width: 1024px) {
     .pratos-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
     .sobre-block { gap: 2rem; }
     .equipe-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
   }
 
-  /* ── Tablet portrait ── */
+
   @media (max-width: 768px) {
     nav { padding: 0 1.2rem; }
     .nav-logo { font-size: 1.35rem; }
@@ -510,7 +510,7 @@
     footer { padding: 2rem 1.5rem; }
   }
 
-  /* ── Mobile grande ── */
+ 
   @media (max-width: 600px) {
     nav { padding: 0 0.75rem; }
     .nav-logo { font-size: 1.2rem; }
@@ -545,7 +545,7 @@
     footer { grid-template-columns: 1fr 1fr; padding: 1.5rem 1rem; gap: 1.5rem; }
   }
 
-  /* ── Mobile pequeno (≤ 400px, ex: iPhone SE) ── */
+
   @media (max-width: 400px) {
     .nav-links a { padding: 1rem 0.35rem; font-size: 0.65rem; }
     .admin-btn { padding: 0 0.5rem !important; }
@@ -560,7 +560,7 @@
     footer { grid-template-columns: 1fr; }
   }
   
-  /* ── Autenticação Admin ── */
+ 
   .admin-login-screen {
     min-height: 80vh;
     display: flex; align-items: center; justify-content: center;
