@@ -20,7 +20,7 @@ const db   = firebase.firestore();
 const auth = firebase.auth();
 
 // ── Observer de autenticação ──────────────────────────────────────────────────
-auth.onAuthStateChanged(usuario => {
+auth.onAuthStateChanged(async usuario => {
   const loginScreen = document.getElementById('admin-login-screen');
   const painel      = document.getElementById('admin-painel');
   if (!loginScreen || !painel) return;
@@ -30,6 +30,12 @@ auth.onAuthStateChanged(usuario => {
     painel.style.display      = 'block';
     const label = document.getElementById('admin-usuario-label');
     if (label) label.textContent = 'Logado como: ' + usuario.email;
+
+    // BUG FIX: onAuthStateChanged disparava antes de carregarDisponibilidades()
+    // terminar, então renderAdmin() desenhava os toggles com os valores padrão
+    // do array PRATOS (todos disponível), ignorando o que estava salvo no Firestore.
+    // Agora aguardamos o carregamento antes de renderizar o painel.
+    if (!disponibilidadesCarregadas) await carregarDisponibilidades();
     renderAdmin();
   } else {
     loginScreen.style.display = 'flex';
