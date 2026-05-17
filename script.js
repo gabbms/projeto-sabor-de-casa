@@ -368,13 +368,8 @@ async function fazerLogin() {
 }
 
 async function fazerLogout() {
-  try {
-    await auth.signOut();
-    mostrarToast('✓ Sessão encerrada com sucesso.');
-  } catch (e) {
-    console.error('Erro ao encerrar sessão:', e);
-    mostrarToast('⚠️ Não foi possível encerrar a sessão. Tente novamente.');
-  }
+  await auth.signOut();
+  mostrarToast('✓ Sessão encerrada com sucesso.');
 }
 
 function toggleSenha() {
@@ -501,15 +496,12 @@ async function buscarCEP() {
 
 // ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
-  // Valida: sem dígitos e com conteúdo real (não só espaços em branco)
+  // AVISO 2: não apagar dígitos silenciosamente — isso confunde o usuário ao colar texto.
+  // Apenas mostra o aviso; a remoção acontece somente no momento de confirmar o pedido.
   const temNumero = /\d/.test(campo.value);
-  const vazio     = campo.value.trim() === '';
-  const invalido  = temNumero || vazio;
   const aviso     = document.getElementById('erro-nome');
-  aviso.style.display = invalido ? 'block' : 'none';
-  if (temNumero) aviso.textContent = '⚠️ O nome não pode conter números.';
-  else if (vazio) aviso.textContent = '⚠️ O nome é obrigatório.';
-  return !invalido;
+  aviso.style.display = temNumero ? 'block' : 'none';
+  return !temNumero;
 }
 
 function validarTelefone(campo) {
@@ -553,7 +545,7 @@ async function confirmarPedido() {
   const precoFinal = pratoPedido.preco + acrescimos;
 
   const dadosDoPedido = {
-     prato:           pratoPedido.nome,
+    prato:            pratoPedido.nome,
     precoBase:       pratoPedido.preco,
     acrescimos:      acrescimos,
     precoTotal:      precoFinal,
@@ -598,7 +590,7 @@ async function confirmarPedido() {
   try {
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
-     mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
+    mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
   } catch (erro) {
     console.error("Erro:", erro);
     mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
