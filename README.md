@@ -1,56 +1,95 @@
-# 🍲 Sabor de Casa – Comida Caseira com Amor
+# 🍽️ Sabor de Casa
 
-Uma plataforma web moderna e responsiva desenvolvida para o restaurante **Sabor de Casa**, especializado em culinária típica piauiense. O projeto combina uma interface elegante com funcionalidades avançadas de front-end e integração com serviços de back-end.
+> **Comida caseira com amor e cuidado de sempre**  
+> Site institucional e sistema de pedidos online para o restaurante Sabor de Casa, especializado em culinária piauiense e maranhense com ingredientes frescos da região.
 
-## 👥 Participantes do Grupo
-
-| Nome | 
-|------|
-| Eduardo Castelo Branco Lima |
-| Gabriel Marques |
-| Vinicius Gomes de Oliveira |
-| Clidenor de Carvalho Moura Junior |
+---
 
 ## 📋 Sobre o Projeto
 
-Este projeto foi construído com o objetivo de unir a tradição da comida caseira com a modernidade das tecnologias web. Ele serve como uma demonstração técnica de habilidades em manipulação de DOM, consumo de APIs externas e persistência de dados em tempo real.
+O **Sabor de Casa** é uma aplicação web desenvolvida para o restaurante homônimo, localizado em Teresina – PI. O sistema oferece uma vitrine digital completa para o negócio, integrando cardápio interativo, sistema de pedidos e painel administrativo com autenticação.
+
+---
 
 ## ✨ Funcionalidades
 
-- **Cardápio Dinâmico:** Listagem de pratos gerada via JavaScript a partir de uma base de dados interna, facilitando a manutenção.
-- **Filtros Inteligentes:** Categorização por Pratos Principais, Porções, Vegetarianos e Sobremesas.
-- **Sistema de Pedidos:** Modal interativo para realização de pedidos com personalizações e escolha de forma de pagamento.
-- **Validação de Formulários:** Verificação em tempo real de nomes (bloqueio de números) e telefones (bloqueio de letras) para garantir dados limpos.
-- **Integração ViaCEP API:** Busca automática de endereço (Rua, Bairro, Cidade) ao informar o CEP, utilizando `Fetch API` e `async/await`.
-- **Back-end com Firebase:** Armazenamento persistente de todos os pedidos realizados diretamente no **Google Firebase Firestore**.
-- **Painel de Gestão (Admin):** Interface para o gerente controlar a disponibilidade de cada prato em tempo real.
-- **Responsividade Total:** Layout adaptável para dispositivos móveis, tablets e desktops utilizando CSS Grid e Flexbox.
+- **Página Inicial** — Hero com estatísticas do restaurante e seção de destaques do dia
+- **Cardápio Interativo** — Listagem de pratos com filtro por categoria (Pratos Principais, Porções, Vegetarianos, Sobremesas)
+- **Sistema de Pedidos** — Modal completo com:
+  - Personalizações por prato
+  - Validação de campos (nome, telefone)
+  - Seleção de tipo de entrega (Retirada ou Delivery)
+  - Busca automática de endereço por CEP (via ViaCEP)
+  - Opções de pagamento (Dinheiro, PIX, Crédito, Débito)
+- **Nossa História** — Página institucional com história, filosofia e apresentação da equipe
+- **Painel Administrativo** — Área protegida por login com gerenciamento de disponibilidade dos pratos em tempo real
+- **Toast de notificações** — Feedback visual para ações do usuário
+
+---
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **HTML5:** Estrutura semântica para melhor acessibilidade e SEO.
-- **CSS3:** Estilização avançada com variáveis nativas, Flexbox e CSS Grid.
-- **JavaScript (ES6+):** Lógica de interatividade, manipulação do DOM e funções assíncronas.
-- **Firebase Firestore:** Banco de dados NoSQL para persistência de pedidos.
-- **ViaCEP API:** API pública para consulta de endereços brasileiros.
+| Tecnologia | Finalidade |
+|---|---|
+| HTML5 | Estrutura das páginas |
+| CSS3 | Estilização e layout responsivo |
+| JavaScript (Vanilla) | Lógica da aplicação e interatividade |
+| Firebase Firestore | Banco de dados em tempo real |
+| Firebase Authentication | Autenticação do painel admin |
+| Google Fonts | Tipografia (Playfair Display + Lato) |
+| ViaCEP API | Busca de endereço por CEP |
 
-## 🚀 Como Executar o Projeto
+---
 
-1.  **Clonagem/Download:** Baixe os arquivos do projeto para sua máquina local.
-2.  **Configuração do Firebase:**
-    -   Crie um projeto no [Console do Firebase](https://console.firebase.google.com/).
-    -   Ative o **Firestore Database** em "Modo de Teste".
-    -   Crie uma Web App e copie as chaves de configuração.
-    -   Substitua o objeto `firebaseConfig` no topo do arquivo `script.js` pelas suas chaves.
-3.  **Execução:** Abra o arquivo `index.html` em qualquer navegador moderno.
+## 📁 Estrutura do Projeto
 
-## 📁 Estrutura de Arquivos
-
-```text
-/SaborDeCasa
-│
-├── index.html     # Estrutura principal e seções do site
-├── style.css      # Estilização, layout responsivo e animações
-├── script.js     # Lógica do cardápio, validações, API e Firebase
-└── /img           # Pasta contendo as imagens dos pratos e equipe
 ```
+sabor-de-casa/
+├── index.html        # Estrutura principal da aplicação
+├── style.css         # Estilos globais e componentes
+├── script.js         # Lógica da aplicação, Firebase e renderização
+└── img/              # Imagens dos pratos e ícones
+```
+
+---
+
+## 🚀 Como Executar
+
+1. Clone ou baixe o repositório
+2. Configure as credenciais do Firebase em `script.js` com seu próprio projeto
+3. Abra o `index.html` em um servidor local (ex: Live Server no VS Code)
+
+> ⚠️ **Atenção:** As credenciais do Firebase devem ser protegidas com restrições de domínio no console do Firebase. Nunca exponha chaves de conta de serviço no código-fonte.
+
+---
+
+## 🔐 Acesso Administrativo
+
+A seção de **Gestão** é protegida por autenticação via Firebase Auth. O login exige e-mail e senha cadastrados previamente no console do Firebase Authentication. 
+
+**e-mail de acesso: admin@sabordecasa.com**
+**senha: 12345678**
+
+---
+
+## 📦 Cardápio
+
+O sistema conta com **10 pratos cadastrados**, organizados nas categorias:
+
+- 🫘 **Pratos Principais** — Feijoada Completa, Escondidinho de Carne Seca, Arroz de Cuxá, Moqueca de Peixe, Baião de Dois
+- 🥙 **Porções** — Bolinho de Bacalhau, Carne de Sol na Chapa, Macaxeira Frita
+- 🥗 **Vegetarianos** — Salada Verde da Roça, Prato Vegetariano do Dia
+- 🍮 **Sobremesas** — Pudim de Leite, Canjica com Coco
+
+---
+
+## 👥 Equipe de Desenvolvimento
+
+| Nome | Papel |
+|---|---|
+| **Eduardo Castelo Branco Lima** | Desenvolvimento |
+| **Gabriel Marques Sousa** | Desenvolvimento |
+| **Vinicius Gomes de Oliveira** | Desenvolvimento |
+| **Clidenor de Carvalho Moura Junior** | Desenvolvimento |
+
+---
