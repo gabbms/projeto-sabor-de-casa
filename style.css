@@ -465,11 +465,99 @@
 
  
 
-  @media (max-width: 680px) {
-    .sobre-block { grid-template-columns: 1fr; }
+  /* ══════════════════════════════════════════════
+     RESPONSIVIDADE
+     — 1024px  tablet landscape / desktop pequeno
+     — 768px   tablet portrait
+     — 600px   mobile grande (ex: iPhone Plus)
+     — 400px   mobile pequeno (ex: iPhone SE)
+  ══════════════════════════════════════════════ */
+
+  /* ── Tablet landscape ── */
+  @media (max-width: 1024px) {
+    .pratos-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .sobre-block { gap: 2rem; }
+    .equipe-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  }
+
+  /* ── Tablet portrait ── */
+  @media (max-width: 768px) {
+    nav { padding: 0 1.2rem; }
+    .nav-logo { font-size: 1.35rem; }
+    .nav-links a { padding: 1.1rem 0.75rem; font-size: 0.8rem; letter-spacing: 0; }
+    .admin-btn { margin-left: 0.5rem; padding: 0 0.75rem !important; font-size: 0.8rem; }
+
+    .hero { padding: 3.5rem 1.5rem 3rem; }
+    .hero-stats { gap: 2rem; }
+
+    .cardapio-wrap { padding: 2rem 1rem; }
+    .section-padding { padding: 2rem 1rem; }
+    .section-title { font-size: 1.8rem; }
+
+    .sobre-block { grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2.5rem; }
     .sobre-block.reverse { direction: ltr; }
+    .sobre-block.reverse > * { direction: ltr; }
+    .sobre-content { padding: 2rem 1rem; }
+
+    .equipe-grid { grid-template-columns: repeat(2, 1fr); }
+    .equipe-section { padding: 2rem 1rem; }
+
+    .admin-wrap { padding: 1.5rem 1rem; }
+    .admin-header { padding: 1.2rem 1.2rem; flex-wrap: wrap; gap: 0.75rem; }
+    .admin-card { padding: 1rem; }
+
+    .modal { padding: 1.5rem; border-radius: 12px; }
+    footer { padding: 2rem 1.5rem; }
+  }
+
+  /* ── Mobile grande ── */
+  @media (max-width: 600px) {
+    nav { padding: 0 0.75rem; }
+    .nav-logo { font-size: 1.2rem; }
+    .nav-links a { padding: 1rem 0.5rem; font-size: 0.72rem; }
+    .admin-btn { padding: 0 0.6rem !important; font-size: 0.72rem; height: 30px; }
+    .admin-btn::before { display: none; }
+
+    .hero { padding: 2.5rem 1rem 2rem; }
+    .hero h1 { font-size: clamp(1.8rem, 8vw, 2.5rem); }
+    .hero p { font-size: 1rem; }
+    .hero-stats { gap: 1.5rem; margin-top: 2rem; }
+    .hero-stat strong { font-size: 1.6rem; }
+
+    .pratos-grid { grid-template-columns: 1fr; }
+
+    .filtros { gap: 0.5rem; }
+    .filtro-btn { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+
+    .equipe-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .equipe-card { padding: 1rem; }
+
+    .admin-header { flex-direction: column; align-items: flex-start; }
+    .admin-card { flex-wrap: wrap; }
+    .toggle-wrap { width: 100%; justify-content: flex-end; margin-top: 0.5rem; }
+
     .form-row { grid-template-columns: 1fr; }
-    .nav-links a { padding: 1.2rem 0.6rem; font-size: 0.78rem; }
+    .modal { padding: 1.2rem; max-height: 95vh; }
+    .modal h2 { font-size: 1.2rem; }
+
+    .toast { bottom: 1rem; right: 1rem; left: 1rem; text-align: center; }
+
+    footer { grid-template-columns: 1fr 1fr; padding: 1.5rem 1rem; gap: 1.5rem; }
+  }
+
+  /* ── Mobile pequeno (≤ 400px, ex: iPhone SE) ── */
+  @media (max-width: 400px) {
+    .nav-links a { padding: 1rem 0.35rem; font-size: 0.65rem; }
+    .admin-btn { padding: 0 0.5rem !important; }
+
+    .hero h1 { font-size: clamp(1.5rem, 9vw, 2rem); }
+
+    .equipe-grid { grid-template-columns: 1fr; }
+
+    .admin-login-card { padding: 1.5rem 1rem; }
+    .admin-login-title { font-size: 1.5rem; }
+
+    footer { grid-template-columns: 1fr; }
   }
   
   /* ── Autenticação Admin ── */
