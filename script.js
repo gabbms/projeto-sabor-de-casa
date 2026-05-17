@@ -31,11 +31,10 @@ auth.onAuthStateChanged(async usuario => {
     const label = document.getElementById('admin-usuario-label');
     if (label) label.textContent = 'Logado como: ' + usuario.email;
 
-    // BUG FIX: onAuthStateChanged disparava antes de carregarDisponibilidades()
-    // terminar, então renderAdmin() desenhava os toggles com os valores padrão
-    // do array PRATOS (todos disponível), ignorando o que estava salvo no Firestore.
-    // Agora aguardamos o carregamento antes de renderizar o painel.
-    if (!disponibilidadesCarregadas) await carregarDisponibilidades();
+    // Aguarda o carregamento das disponibilidades antes de renderizar o painel.
+    // Como carregarDisponibilidades() retorna sempre a mesma Promise, chamadas
+    // paralelas não geram requisições duplicadas ao Firestore.
+    await carregarDisponibilidades();
     renderAdmin();
   } else {
     loginScreen.style.display = 'flex';
@@ -158,11 +157,7 @@ function mostrarSecao(id, el) {
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (id === 'cardapio') {
-    if (!disponibilidadesCarregadas) {
-      carregarDisponibilidades().then(() => renderCardapio());
-    } else {
-      renderCardapio();
-    }
+    carregarDisponibilidades().then(() => renderCardapio());
   }
   if (id === 'home')  renderDestaques();
 }
@@ -212,28 +207,33 @@ function renderCard(p, container) {
   }
 }
 
-let disponibilidadesCarregadas = false;
-
 // ── Sincronização de disponibilidade com Firestore ────────────────────────────
-// Carrega os overrides de disponibilidade salvos pelo admin e aplica sobre o
-// array PRATOS antes de qualquer renderização. Pratos sem documento no Firestore
-// mantêm o valor padrão definido em PRATOS.
-async function carregarDisponibilidades() {
-  try {
-    const snapshot = await db.collection('pratos').get();
-    snapshot.forEach(doc => {
-      const dado  = doc.data();
-      const prato = PRATOS.find(p => String(p.id) === doc.id);
-      if (prato && typeof dado.disponivel === 'boolean') {
-        prato.disponivel = dado.disponivel;
-      }
-    });
-  } catch (erro) {
-    console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
-    // Em caso de falha de rede, o site continua com os valores padrão do array
-  } finally {
-    disponibilidadesCarregadas = true;
+// Promise compartilhada: garante que o Firestore seja consultado apenas uma vez,
+// mesmo que carregarDisponibilidades() seja chamada em paralelo (ex: DOMContentLoaded
+// e onAuthStateChanged disparando ao mesmo tempo). Chamadas subsequentes recebem
+// a mesma Promise já resolvida, eliminando o race condition.
+let disponibilidadesPromise = null;
+
+function carregarDisponibilidades() {
+  if (!disponibilidadesPromise) {
+    disponibilidadesPromise = db.collection('pratos').get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          const dado  = doc.data();
+          const prato = PRATOS.find(p => String(p.id) === doc.id);
+          if (prato && typeof dado.disponivel === 'boolean') {
+            prato.disponivel = dado.disponivel;
+          }
+        });
+      })
+      .catch(erro => {
+        console.warn('Não foi possível carregar disponibilidades do Firestore:', erro);
+        // Em caso de falha de rede, o site continua com os valores padrão do array.
+        // Resetamos a Promise para permitir nova tentativa na próxima navegação.
+        disponibilidadesPromise = null;
+      });
   }
+  return disponibilidadesPromise;
 }
 
 function renderDestaques() {
@@ -545,7 +545,7 @@ async function confirmarPedido() {
   const precoFinal = pratoPedido.preco + acrescimos;
 
   const dadosDoPedido = {
-    prato:            pratoPedido.nome,
+     prato:           pratoPedido.nome,
     precoBase:       pratoPedido.preco,
     acrescimos:      acrescimos,
     precoTotal:      precoFinal,
@@ -590,7 +590,7 @@ async function confirmarPedido() {
   try {
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
-    mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
+     mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
   } catch (erro) {
     console.error("Erro:", erro);
     mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
