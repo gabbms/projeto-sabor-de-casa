@@ -368,8 +368,13 @@ async function fazerLogin() {
 }
 
 async function fazerLogout() {
-  await auth.signOut();
-  mostrarToast('✓ Sessão encerrada com sucesso.');
+  try {
+    await auth.signOut();
+    mostrarToast('✓ Sessão encerrada com sucesso.');
+  } catch (e) {
+    console.error('Erro ao encerrar sessão:', e);
+    mostrarToast('⚠️ Não foi possível encerrar a sessão. Tente novamente.');
+  }
 }
 
 function toggleSenha() {
@@ -496,12 +501,15 @@ async function buscarCEP() {
 
 // ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
-  // AVISO 2: não apagar dígitos silenciosamente — isso confunde o usuário ao colar texto.
-  // Apenas mostra o aviso; a remoção acontece somente no momento de confirmar o pedido.
+  // Valida: sem dígitos e com conteúdo real (não só espaços em branco)
   const temNumero = /\d/.test(campo.value);
+  const vazio     = campo.value.trim() === '';
+  const invalido  = temNumero || vazio;
   const aviso     = document.getElementById('erro-nome');
-  aviso.style.display = temNumero ? 'block' : 'none';
-  return !temNumero;
+  aviso.style.display = invalido ? 'block' : 'none';
+  if (temNumero) aviso.textContent = '⚠️ O nome não pode conter números.';
+  else if (vazio) aviso.textContent = '⚠️ O nome é obrigatório.';
+  return !invalido;
 }
 
 function validarTelefone(campo) {
