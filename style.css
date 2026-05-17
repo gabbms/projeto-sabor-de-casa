@@ -117,15 +117,6 @@
     margin-bottom: 0.5rem;
   }
   .section-sub { text-align: center; color: var(--cinza); margin-bottom: 2.5rem; font-weight: 300; }
-  .section-divider {
-    display: flex; align-items: center; justify-content: center;
-    gap: 1rem; margin-bottom: 2.5rem;
-  }
-  .section-divider::before, .section-divider::after {
-    content: ''; flex: 1; max-width: 120px; height: 1px; background: var(--ouro);
-  }
-  .section-divider span { color: var(--ouro); font-size: 1.2rem; }
-
   .filtros {
     display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
     margin-bottom: 2rem;
@@ -361,36 +352,34 @@
   }
   /* Estilos da Equipe no style.css */
 
-.avatar-vinicius {
-  background: var(--verde);
-  background-image: url('./img/perfil-vini.jpeg'); /* Sua foto local */
-  background-size: cover;
-  background-position: center top;
-}
+  .avatar-vinicius {
+    background: var(--verde);
+    background-image: url('./img/perfil-vini.jpeg');
+    background-size: cover;
+    background-position: center top;
+  }
 
-.avatar-eduardo {
-  background: var(--laranja);
-  /* Placeholder atualizado com a letra 'E' */
-  background-image: url('./img/perfil-eduardo.jpeg');
-  background-size: cover; 
-  background-position: center center;
-}
+  .avatar-eduardo {
+    background: var(--laranja);
+    background-image: url('./img/perfil-eduardo.jpeg');
+    background-size: cover;
+    background-position: center center;
+  }
 
-.avatar-gabriel {
-  background: var(--marrom);
-  background-image: url('./img/perfil-gab.jpg'); /* Sua foto local */
-  background-size: cover; 
-  background-position: center top;
-}
+  .avatar-gabriel {
+    background: var(--marrom);
+    background-image: url('./img/perfil-gab.jpg');
+    background-size: cover;
+    background-position: center top;
+  }
 
-.avatar-clidenor {
-  background: var(--ouro);
-  color: var(--marrom);
-  /* Placeholder atualizado com a letra 'C' */
-  background-image: url('./img/perfil-clidenor.jpeg');
-  background-size: cover; 
-  background-position: center 30%;
-}
+  .avatar-clidenor {
+    background: var(--ouro);
+    color: var(--marrom);
+    background-image: url('./img/perfil-clidenor.jpeg');
+    background-size: cover;
+    background-position: center 30%;
+  }
   .equipe-nome { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--verde); margin-bottom: 0.25rem; }
   .equipe-cargo { font-size: 0.8rem; color: var(--cinza); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
   .equipe-desc { font-size: 0.85rem; color: var(--cinza); margin-top: 0.75rem; }

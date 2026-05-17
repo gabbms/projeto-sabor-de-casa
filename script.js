@@ -1,3 +1,10 @@
+// ⚠️  SEGURANÇA — Credenciais do Firebase
+// Estas chaves ficam visíveis no código-fonte público. Para proteger o projeto:
+//   1. No console do Firebase → Configurações do projeto → Restrições de API:
+//      limite o uso desta apiKey apenas ao(s) domínio(s) do seu site.
+//   2. Em Firestore → Regras: exija autenticação para leitura/escrita sensível.
+//   3. Em Authentication → Configurações: ative apenas os provedores necessários.
+//   4. Nunca exponha chaves de serviço (service account) aqui — essas sim são secretas.
 const firebaseConfig = {
   apiKey: "AIzaSyAkZwQ5HNk0oNIAQ-9OGSmpHp4rSBCDe98",
   authDomain: "sabor-de-casa-42bc7.firebaseapp.com",
@@ -13,7 +20,7 @@ const db   = firebase.firestore();
 const auth = firebase.auth();
 
 // ── Observer de autenticação ──────────────────────────────────────────────────
-auth.onAuthStateChanged(usuario => {
+auth.onAuthStateChanged(async usuario => {
   const loginScreen = document.getElementById('admin-login-screen');
   const painel      = document.getElementById('admin-painel');
   if (!loginScreen || !painel) return;
@@ -23,6 +30,12 @@ auth.onAuthStateChanged(usuario => {
     painel.style.display      = 'block';
     const label = document.getElementById('admin-usuario-label');
     if (label) label.textContent = 'Logado como: ' + usuario.email;
+
+    // BUG FIX: onAuthStateChanged disparava antes de carregarDisponibilidades()
+    // terminar, então renderAdmin() desenhava os toggles com os valores padrão
+    // do array PRATOS (todos disponível), ignorando o que estava salvo no Firestore.
+    // Agora aguardamos o carregamento antes de renderizar o painel.
+    if (!disponibilidadesCarregadas) await carregarDisponibilidades();
     renderAdmin();
   } else {
     loginScreen.style.display = 'flex';
@@ -112,7 +125,7 @@ const PRATOS = [
     id:9, nome:"Pudim de Leite", cat:"sobremesa",
     emoji:"🍮", preco:14.00,
     imagem:"./img/pudim.jpeg",
-    desc:"Pudim artesanal com receita secreta da sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
+    desc:"Pudim artesanal com receita secreta do sous chef Eduardo Castelo. Textura sedosa, caramelo dourado e gostinho de infância.",
     tags:["individual","contém leite"],
     personalizacoes:["Porção dupla (+R$10)","Calda de chocolate (+R$3)"],
     badge:"Favorito", veggie:true, disponivel:true, destaque:false
@@ -181,13 +194,19 @@ function renderCard(p, container) {
       '<div class="prato-tags">' + tagsHtml + '</div>' +
       '<div class="prato-footer">' +
         '<div class="prato-preco">R$' + p.preco.toFixed(2).replace('.', ',') + '</div>' +
-        '<button class="btn-pedir" onclick="abrirModal(' + p.id + ')" ' + (!p.disponivel ? 'disabled' : '') + '>' +
+        '<button class="btn-pedir"' + (!p.disponivel ? ' disabled' : '') + '>' +
           (p.disponivel ? 'Fazer Pedido' : 'Indisponível') +
         '</button>' +
       '</div>' +
     '</div>';
 
   container.appendChild(div);
+
+  // AVISO 5: usar addEventListener em vez de onclick inline
+  if (p.disponivel) {
+    div.querySelector('.btn-pedir').addEventListener('click', () => abrirModal(p.id));
+  }
+
   if (p.imagem) {
     div.querySelector('.prato-img').style.backgroundImage = "url('" + p.imagem + "')";
   }
@@ -234,6 +253,12 @@ function renderCardapio() {
 function filtrarPratos(cat, btn) {
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+
+  // AVISO 1: garante que o cardápio está renderizado antes de filtrar.
+  // Pode estar vazio se o usuário clicar num filtro antes do carregamento terminar.
+  const grid = document.getElementById('cardapio-grid');
+  if (grid && grid.children.length === 0) renderCardapio();
+
   const cards = document.querySelectorAll('#cardapio-grid .prato-card');
   cards.forEach(c => {
     if (cat === 'todos')       { c.style.display = ''; return; }
@@ -261,9 +286,11 @@ function renderAdmin() {
         '<span class="toggle-label ' + (p.disponivel ? 'disponivel' : 'esgotado-text') + '" id="label-' + p.id + '">' +
           (p.disponivel ? 'Disponível' : 'Esgotado') +
         '</span>' +
-        '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '" onclick="togglePrato(' + p.id + ')"></button>' +
+        '<button class="toggle' + (p.disponivel ? ' on' : '') + '" id="toggle-' + p.id + '"></button>' +
       '</div>';
     lista.appendChild(div);
+    // AVISO 5: usar addEventListener em vez de onclick inline
+    div.querySelector('#toggle-' + p.id).addEventListener('click', () => togglePrato(p.id));
   });
 }
 
@@ -341,8 +368,13 @@ async function fazerLogin() {
 }
 
 async function fazerLogout() {
-  await auth.signOut();
-  mostrarToast('✓ Sessão encerrada com sucesso.');
+  try {
+    await auth.signOut();
+    mostrarToast('✓ Sessão encerrada com sucesso.');
+  } catch (e) {
+    console.error('Erro ao encerrar sessão:', e);
+    mostrarToast('⚠️ Não foi possível encerrar a sessão. Tente novamente.');
+  }
 }
 
 function toggleSenha() {
@@ -350,26 +382,68 @@ function toggleSenha() {
   campo.type  = campo.type === 'password' ? 'text' : 'password';
 }
 
+
+// Extrai o valor extra de uma string de personalização.
+// Ex: "Queijo extra (+R$5)"  →  5
+//     "Sem pimenta"          →  0
+function extrairValorExtra(texto) {
+  const match = texto.match(/\(\+R\$(\d+(?:[.,]\d+)?)\)/);
+  if (!match) return 0;
+  return parseFloat(match[1].replace(',', '.'));
+}
+
+// Recalcula e exibe o preço total (base + adicionais marcados)
+function atualizarPrecoModal() {
+  let total = pratoPedido.preco;
+  document.querySelectorAll('#personaliz-opts input[type="checkbox"]').forEach(cb => {
+    if (cb.checked) total += extrairValorExtra(cb.dataset.extra || '');
+  });
+  const infoEl = document.getElementById('modal-info');
+  const tagsStr = pratoPedido.tags.join(' · ');
+  infoEl.textContent = 'R$' + total.toFixed(2).replace('.', ',') + ' · ' + tagsStr;
+  infoEl.dataset.total = total;
+}
+
 // ── Modal de pedido ───────────────────────────────────────────────────────────
 function abrirModal(id) {
   pratoPedido = PRATOS.find(p => p.id === id);
   document.getElementById('modal-titulo').textContent = pratoPedido.nome;
-  document.getElementById('modal-info').textContent   = 'R$' + pratoPedido.preco.toFixed(2).replace('.', ',') + ' · ' + pratoPedido.tags.join(' · ');
 
   const opts = document.getElementById('personaliz-opts');
   opts.innerHTML = '';
   pratoPedido.personalizacoes.forEach(function(op, i) {
     const div = document.createElement('div');
     div.className = 'personaliz-opt';
-    div.innerHTML = '<input type="checkbox" id="p' + i + '"><label for="p' + i + '">' + op + '</label>';
+    const cbId = 'p' + pratoPedido.id + '-' + i;
+    const extra = extrairValorExtra(op);
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = cbId;
+    cb.dataset.extra = op;   // guarda o texto completo para extração posterior
+    cb.addEventListener('change', atualizarPrecoModal);
+    const lbl = document.createElement('label');
+    lbl.htmlFor = cbId;
+    lbl.textContent = op;
+    div.appendChild(cb);
+    div.appendChild(lbl);
     opts.appendChild(div);
   });
+
+  // Exibe preço base antes de qualquer seleção
+  atualizarPrecoModal();
+
 
   document.getElementById('campo-nome').value      = '';
   document.getElementById('campo-tel').value       = '';
   document.getElementById('campo-entrega').value   = '';
   document.getElementById('campo-pagamento').value = '';
   document.getElementById('campo-obs').value       = '';
+  // CORREÇÃO 3: limpar campos de endereço para não vazar dados de pedido anterior
+  document.getElementById('campo-cep').value    = '';
+  document.getElementById('campo-rua').value    = '';
+  document.getElementById('campo-num').value    = '';
+  document.getElementById('campo-bairro').value = '';
+  document.getElementById('campo-cidade').value = '';
   document.getElementById('endereco-wrap').style.display = 'none';
   document.getElementById('erro-nome').style.display    = 'none';
   document.getElementById('erro-tel').style.display     = 'none';
@@ -427,15 +501,15 @@ async function buscarCEP() {
 
 // ── Validações ────────────────────────────────────────────────────────────────
 function validarNome(campo) {
+  // Valida: sem dígitos e com conteúdo real (não só espaços em branco)
   const temNumero = /\d/.test(campo.value);
+  const vazio     = campo.value.trim() === '';
+  const invalido  = temNumero || vazio;
   const aviso     = document.getElementById('erro-nome');
-  if (temNumero) {
-    campo.value = campo.value.replace(/\d/g, '');
-    aviso.style.display = 'block';
-  } else {
-    aviso.style.display = 'none';
-  }
-  return !temNumero;
+  aviso.style.display = invalido ? 'block' : 'none';
+  if (temNumero) aviso.textContent = '⚠️ O nome não pode conter números.';
+  else if (vazio) aviso.textContent = '⚠️ O nome é obrigatório.';
+  return !invalido;
 }
 
 function validarTelefone(campo) {
@@ -456,6 +530,8 @@ async function confirmarPedido() {
   const pag       = document.getElementById('campo-pagamento').value;
 
   const nomeValido = validarNome(nomeCampo) && nomeCampo.value.trim() !== '';
+  // Remove dígitos do nome somente na hora de enviar (validarNome só avisa inline)
+  if (!nomeValido) nomeCampo.value = nomeCampo.value.replace(/\d/g, '').trim();
   validarTelefone(telCampo);
   const telLimpo  = telCampo.value.replace(/\D/g, '');
   const telValido = telLimpo.length >= 10 && telLimpo.length <= 11;
@@ -465,15 +541,29 @@ async function confirmarPedido() {
     return;
   }
 
+  // Coleta personalizações marcadas e calcula acréscimos
+  const personalizacoesSelecionadas = [];
+  let acrescimos = 0;
+  document.querySelectorAll('#personaliz-opts input[type="checkbox"]').forEach(cb => {
+    if (cb.checked) {
+      personalizacoesSelecionadas.push(cb.dataset.extra);
+      acrescimos += extrairValorExtra(cb.dataset.extra);
+    }
+  });
+  const precoFinal = pratoPedido.preco + acrescimos;
+
   const dadosDoPedido = {
-    prato:          pratoPedido.nome,
-    preco:          pratoPedido.preco,
-    cliente:        nomeCampo.value.trim(),
-    telefone:       telCampo.value.trim(),
-    tipoEntrega:    entrega,
-    formaPagamento: pag,
-    observacoes:    document.getElementById('campo-obs').value.trim(),
-    data:           new Date().toLocaleString('pt-BR')
+     prato:           pratoPedido.nome,
+    precoBase:       pratoPedido.preco,
+    acrescimos:      acrescimos,
+    precoTotal:      precoFinal,
+    personalizacoes: personalizacoesSelecionadas,
+    cliente:         nomeCampo.value.trim(),
+    telefone:        telCampo.value.trim(),
+    tipoEntrega:     entrega,
+    formaPagamento:  pag,
+    observacoes:     document.getElementById('campo-obs').value.trim(),
+    data:            new Date().toLocaleString('pt-BR')
   };
 
   if (entrega === 'delivery') {
@@ -487,13 +577,15 @@ async function confirmarPedido() {
       document.getElementById('campo-cep').focus();
       return;
     }
-    if (!rua || !num) {
-      mostrarToast('⚠️ Preencha a rua e o número para delivery.');
+    // CORREÇÃO 4: incluir bairro na validação — campo pode vir vazio do ViaCEP
+    const bairro = document.getElementById('campo-bairro').value.trim();
+    if (!rua || !num || !bairro) {
+      mostrarToast('⚠️ Preencha rua, número e bairro para delivery.');
       return;
     }
 
     dadosDoPedido.endereco = rua + ', ' + num
-      + ' - ' + document.getElementById('campo-bairro').value.trim()
+      + ' - ' + bairro
       + ' - ' + cidade
       + ' - CEP ' + document.getElementById('campo-cep').value.trim();
   }
@@ -506,7 +598,7 @@ async function confirmarPedido() {
   try {
     await db.collection("pedidos").add(dadosDoPedido);
     fecharModal();
-    mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' enviado e salvo no Firebase!');
+     mostrarToast('✓ Pedido de ' + pratoPedido.nome + ' (R$' + precoFinal.toFixed(2).replace('.', ',') + ') enviado com sucesso!');
   } catch (erro) {
     console.error("Erro:", erro);
     mostrarToast('⚠️ Erro ao conectar com o banco de dados.');
